@@ -37,7 +37,6 @@ RISC精简指令集
 CISC复杂指令集，一般来说X86构架的CPU都是复杂指令的，AMD，intel就是X86构架的
 linux就是基于X86的操作系统
 
-
 八进制在C语言中为 0
 十六进制在C语言中为0x
 
@@ -115,5 +114,44 @@ int main(int argc,char *args[]){
     //第二个参数就是一个指针数组，其中每个成员的类型是char *
     //args
 }
+```
+
+```c
+int *p;
+p = 100;//给野指针赋值时错误的
+```
+
+```c
+#include<stdio.h>
+void test(int *);
+int main(void){
+    void (*p)(int *);//定义了一个指向函数的指针变量
+    p = test;
+    int a = 100;
+    p(&a);
+    return 0;
+}
+
+void test(int *p){
+    
+}
+```
+
+```c
+extern int age;//有一个变量，类型时int，名字时age，已经在其他文件的定义了
+```
+
+```c
+//auto自动变量，一般情况下代码块内部定义的变量都是自动变量。当然可以显示的使用auto关键字
+auto int a;
+```
+
+```c
+register int i = 0;//建议，如果寄存器空闲，那么这个变量就放在寄存器里面使用
+int * p = &i;//对于一个register变量，是不能取地址操作
+```
+
+```c
+static int a = 0;//静态变量，只初始化一次，而且程序运行期间，静态变量一直存在
 ```
 
