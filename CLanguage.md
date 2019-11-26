@@ -1,13 +1,16 @@
+
+
 常量是计算机内存里面不变的数据
 变量是计算机内存里面经常改变的数据
 
 
 %d是十进制   %x是十六进制
 
-C语言变量命名规则
-​	1.第一个必须是字母或下划线
-​	2.不能是C语言关键字
-有的编译器可以将汉字当做字母
+#### C语言变量命名规则
+
+ 	1. 第一个必须是字母或下划线
+ 	2. 不能是C语言关键字
+ 	3. 有的编译器可以将汉字当做字母
 
 变量如果补初始化，可以编译成功，但是执行的时候可能报错
 
@@ -19,7 +22,8 @@ C语言变量命名规则
 ​	如果变量不初始化，就会默认读取垃圾数据，有些垃圾数据会导致程序
 ​	崩溃。
 
-gcc -E -o a.e a.c
+#### gcc -E -o a.e a.c
+
 预编译啊a.c文件生成目标文件名为a.e
 预编译是include包含的头文件内容替换到.c文件中，同时将代码中没用的注释部分删除
 
@@ -154,4 +158,108 @@ int * p = &i;//对于一个register变量，是不能取地址操作
 ```c
 static int a = 0;//静态变量，只初始化一次，而且程序运行期间，静态变量一直存在
 ```
+
+#### 栈stack是一种先进后出的内存结构，所有的自动变量，函数形参都是由编译器自动放入栈中，当一个变量超出其作用域时，自动从栈中弹出
+
+#### 对于自动变量，什么时候入栈，什么时候出栈，是不需要程序控制的，由C语言编辑器实现
+
+#### 栈不会很大，一般以K位单位
+
+#### 堆heap和栈一样，也是一种在程序在程序运行过程中可以随时修改的内存区域，但是没有栈那样先进后出的顺序。
+
+#### 堆是一个大容器，他的容量要远远大于栈，但是在C语言中，堆内存空间的申请和释放需要手动通过代码来完成的
+
+## 重要***
+
+```c
+#include<stdio.h>
+void getHeap1(int *p){
+    p = malloc(sizeof(int)*10);
+}
+
+void getHeap2(int **p){
+    *p = malloc(sizeof(int)*10);
+}
+int main(void){  
+	
+    int * pHeap = NULL;
+    //getHeap1(pHeap);//值传递
+    getHeap2(&pHeap);//地址传递
+    pHeap[0] = 1;
+    pHeap[1] = 2;
+
+    for (int j = 0; j < 2; ++j) {
+        printf("pHeap[%d] = %d\n",j,pHeap[j]);
+    }
+
+    free(pHeap);
+
+    return 0;
+}
+```
+
+#### 内存四区
+
+```c
+#include<stdio.h>
+int c = 0;//全局
+static int d = 0;//在定义这个变量的文件内部是全局的，但在外部不可用
+void test(){
+    auto int b = 0;//所有的局部变量都是静态变量，所以关键字auto可以省略
+    static int f = 0;//整个进程运行期间一直有效，是静态区，但只能test函数内部访问
+}
+int main(void){
+    
+    return 0;
+}
+```
+
+### 结构体
+
+```c
+#include <stdio.h>
+#include <string.h>
+struct Student {
+    char name[100];
+    int age;
+    int sex;
+};//定义一个结构体
+
+struct A {
+    // struct Student;
+    int name1[10];
+    long long c;
+    int a;
+    char b;
+};
+
+struct B {
+    char a :4;//使用一个bit
+
+};
+
+int main(void) {
+
+    printf("%d", 3);
+    struct Student student;//定义了一个结构体变量，名字叫student
+    struct Student student1 = {"周水平", 12, 0};//定义一个结构体同时初始化
+    struct Student student2 = {0};//定义一个结构体，同时将所有变量初始化位0
+    struct Student student3 = {.age = 20, .name="傻逼", .sex = 1};
+    student.age = 20;
+    student.sex = 0;
+    strcpy(student.name, "刘德华");
+    printf("name = %s,age = %d,sex = %d", student.name, student.age, student.age);
+
+    printf("\n=============================================\n");
+    printf("结构体Student的字节数：%d\n", sizeof(struct Student));
+    struct A a = {0};
+    printf("结构体A的字节数：%d\n", sizeof(a));
+
+    printf("%d", sizeof(size_t));
+    return 0;
+}
+
+```
+
+
 
