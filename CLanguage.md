@@ -261,5 +261,81 @@ int main(void) {
 
 ```
 
+------------------------------
+
+
+
+#### 在定义与结构体有关的函数时，尽量使用指针，因为指针作为参数，只需要传递一个地址，所以代码效率很高。
+
+### 联合体
+
+```c
+union A{
+    char *p;
+    char a;
+};
+//联合体中有指针类型，那么一定要用完这个指针，并且free之后才能使用其他成员
+```
+
+### typedef
+
+typedef是一种高级数据特性，它能使某一种类型创建自己的名字
+
+### 文件操作
+
+#### 写
+
+```c
+#include <stdio.h>
+#include <string.h>
+int main(void){
+    FILE * filePointer = fopen("E:\\a.txt","w");//用写的方式打开一个文件
+    //"w"意思就是如果文件不存在，如果文件存在就覆盖
+//    fputs("hello world",filePointer);//向文件写入一个字符串
+//    fputs("你好",filePointer);
+    while(1){
+        memset(string,0, sizeof(string));
+        scanf("%s",string);
+
+        if (strcmp(string,"exit") == 0){
+            break;
+        }
+        int length = strlen(string);
+        string[length] = '\n';
+        fputs(string,filePointer);
+    }
+    fclose(filePointer);//关闭这个文件
+
+    printf("end\n");
+    return 0;
+}
+
+```
+
+#### 读
+
+````c
+#include <stdio.h>
+#include <string.h>
+int main(void){
+    char string[1024] = {0};
+    FILE * filePointer = fopen("E:\\a.txt","r");//用读的方式打开一个文件
+    //feof(filePointer);//如果文件已经到了结尾，函数返回真
+
+    while(!feof(filePointer)) {
+        memset(string, 0,sizeof(string));//初始化数组
+        fgets(string, sizeof(string),filePointer);//第一个参数是内存地址，第二个参数是这块											//内存的大小，第三个参数fopen 返回的文件指针
+        printf("%s",string);
+    }
+
+    fclose(filePointer);
+    return 0;
+}
+````
+
+
+
+
+
 
 
