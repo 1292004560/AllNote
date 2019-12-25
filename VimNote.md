@@ -239,7 +239,11 @@ iw表示inner word 。如果键入viw命令，那么首先v将进入选择模式
 
 **输出当前文件的绝对路径  : r ! echo %:p**
 
+#### vim更换配色
 
+1. 使用 **: colorscheme**显示当前的主题配色，默认是default。
+2. 使用 **: colorscheme  <ctrl +d>**可以显示所有配色。
+3. 有中意的配色后，用**:colorscheme   配色名** 就可以更换配色。
 
 
 
