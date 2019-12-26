@@ -245,6 +245,68 @@ iw表示inner word 。如果键入viw命令，那么首先v将进入选择模式
 2. 使用 **: colorscheme  <ctrl +d>**可以显示所有配色。
 3. 有中意的配色后，用**:colorscheme   配色名** 就可以更换配色。
 
+#### 编写vim配置文件
+
+1. linux/Unix下新建一个隐藏文件 vim     ~/.vimmrc.
+2. windows 系统vim  $MYVIMRC ,通过环境变量编辑配置文件。
+
+##### vim配置都包含什么
+
+1. 常用设置，比如:set nu 设置行号，colorscheme hybrid设置主题。
+2. 常用的vim 映射，比如noremap**<leader>** w : w **<cr>**保存文件。
+3. 自定义的vimscript函数(vim 高手)插件的配置。
+
+###### vim中的映射
+
+1. 设置leader键 let  mapleader  = “ ，”常用的是逗号或空格。
+2. 比如inoremap <leader> w <ESC> :w <cr> 在插入模式保存。
+
+#### 什么是Vim的映射
+
+**vim映射就是把一个操作映射到另一个操作**
+
+##### 基本映射
+
+**基本映射指的是normal模式下的映射**
+
+1. 使用map就可以实现映射。比如: map  - x 然后按 - 就会删除字符。
+2. **: map <space> viw **告诉vim按下空格的时候选中整个 单词。
+3. **:map <c  +d > dd  **可以使用ctrl + d 执行dd 删除一行。“注意”：c 尾 ctrl
+4. : ummap   - 取消映射。
+
+##### 模式映射
+
+###### Vim中常用模式normal/visual/insert都可以定义映射
+
+1. 用nmap/vmap/imap定义映射只在normal/visual/insert/分别有效。
+2. **:vmap \  U 将  \  代替 U  把在visual模式下选中的文本大小写(u/U转换大小写)**   。
+3. 如何在insert模式下映射CTRL + d 删除一行 **: imap  <c-d>  <ESC>ddi**
+4. **: namp - dd**          **: nmap \  -**  。
+5. 当你按下  \ 时，vim会解释为 -  。我们又映射了 \  vim 继续解析为 dd ，即它会删除整行。
+
+###### 递归与非递归映射
+
+1. 如果你安装了一个插件，插件映射了同一个按键的不同行为，有冲突就会失效。
+2. 解决方案就是使用非递归映射。
+
+###### 非递归映射
+
+1. 使用 map对应的 **nnoremap/vnoremap/ inoremap**。
+2. 何时使用递归映射 **map** ? 何时使用非递归映射 **nnoremap**?
+3. 任何时候都应该使用非递归映射，拯救自己和插件作者。
+
+###### 学习vim书籍
+
+[本方法学VimScript](<http://higrid.net/hi/books/learnvimthehardway>)
+
+
+
+
+
+
+
+
+
 
 
 
