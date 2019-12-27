@@ -299,7 +299,62 @@ iw表示inner word 。如果键入viw命令，那么首先v将进入选择模式
 
 [本方法学VimScript](<http://higrid.net/hi/books/learnvimthehardway>)
 
+***
 
+#### 安装插件
+
+###### 常见插件vim-plug , Vundle,Pathogen,Dein.Vim,volt等。
+
+###### 综合性能，易用性，文档，等几个方面，推荐使用vim-plug.
+
+[vim-plug 插件的GitHub网址](https://github.com//junegunn/vim-plug)
+
+#### 安装vim-startify 插件
+
+1. [vim-startify,一个好用的开屏插件](https://github.com/mhinz/vim-startify)
+2. 修改.vimrc 文件，增加该插件名称。
+3. 重新启动vim或者source一下 **.vimrc** ,执行 **:PlugInstall**
+
+#### 如何寻找插件
+
+1. 通过google进行搜索。
+2. **https://vimawesome.com**
+
+#### vim美化插件
+
+1. [修改启动界面](https://github.com/mhinz/vim-startify)
+2. [状态栏美化](https:github.com/vim-airline/vim-airline)
+3. [增加代码缩进条](https://github.com/yggdroot/indentline)
+
+#### vim配色方案
+
+1. [vim-hybird配色](https://github.com/w0ng/vim-hybird).
+2. [solarized配色](https://gitgub/altercation/vim-colors-solarized).
+3. [gruvbox配色](https://github.com/morhetz/gruvbox).
+
+#### 文件管理器nerdtree
+
+1. [使用nerdtree插件进行文件目录树管理](https://github.com/scrooloose/nerdtree)。
+2. autocmd vimenter  *NERDTree 可以启动vim是打开。
+3. nnoremap <leader> v : NEEDTreeFind<cr> 查找文件打开。
+
+#### 模糊搜索器
+
+1. [模糊搜索器](https://github.com/ctrlpvim/ctrlp.vim)。
+2. 映射命令  let g:ctrlp_map = '<c-p>'
+3. 使用ctrl+p然后搜索少量的字符就可以搜索啦。
+
+#### vim快速定位文件，文件任我行
+
+##### vim基础移动命令
+
+1. 比如w/e基于单词移动，gg/G问价首尾，0/$行首 行尾 f{char}查询字符。
+2. ctrl+f  ctrl + u 前后翻屏。
+
+##### 文件任意位置移动插件easymotion
+
+* [文件内容快速定位插件easymotion](https://github.com/easymotion/vim-easymotion)。
+* nnmap ss <Plug>(easymotion-s2)。
 
 
 
