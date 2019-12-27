@@ -356,9 +356,104 @@ iw表示inner word 。如果键入viw命令，那么首先v将进入选择模式
 * [文件内容快速定位插件easymotion](https://github.com/easymotion/vim-easymotion)。
 * nnmap ss <Plug>(easymotion-s2)。
 
+***
 
+ #### 成对编辑插件
 
+1. [成对编辑插件vim-surround](https://github.com/tpope/vim-surround)。
+2. normal模式下增加，修改，删除成对内容。
+3. ds(delete a surrounding)。
+4. cs(change a surrounding)。
+5. ys(you add a surounding)。
+6. 例如：ys  iw "  给   name 加双引号。
+7. 例如 ：将双引号改成单引号 **cs  "  '  **
 
+#### 强大的vim模糊搜索与替换插件
+
+###### 搜索插件
+
+1. [fzf是一个命令行搜索工具，fzf.vim集成到vim中](https://github.com/junegunn/fzf.vim) 。
+2. 使用Ag [PATTERN]模糊搜索目录。
+3. 使用Files[PATH]模糊搜索目录。
+
+###### 替换插件
+
+* [far-vim](https://github.com/brooth/far.vim)。
+* 比如说在重构代码的时候经常用到。
+* **：Far foo  bar **   ** / *.py.
+
+#### 代码大纲tagbar
+
+1. [tagbar](https://github.com/majutsushi/tagbar)。
+2. 需要安装Universal CTags生成对应的tag文件。
+3. 快速浏览代码结构，并且搜索跳转到对应的代码块。
+
+#### 高亮代码插件
+
+* [vim-interestingwords](https://github.com/lfv89/vim-interestingwords)。
+* 浏览代码的时候经常需要知道一个变量的使用方式。
+* 可以使用这个插件同时高亮多个单词。
+
+#### 强大的代码补全插件
+
+* [deoplete.nvim](https://github.com/shougo/deoplete.nvim)。
+* 多编程语言支持，支持模糊匹配。
+* 需要安装对应编程语言的扩展。
+* [coc.vim](https://github.com/neoclide/coc.nvim)。
+* 强大的neovim/vim8补全插件，LSP支持。
+* full Lanuage  Server Protocol support  as  VScode。
+
+#### vim代码格式化与静态检查
+
+* 静态检查是为了让编写的代码更加规范。golint/pylint/eslint等。
+* vim-autoformat和Neoformat 是两种使用较多的插件。
+* [noeformat](https://github.com/sbdchd/neoformat)。
+* 需要安装对应的语言格式化库。
+* neomake和ale是两种常用的lint插件。
+* [ale](https://github.com/w0rp/ale)。
+* 同样需要安装对应的语言lint库。
+* vim8/neovim支持异步检查，不会影响vim的编辑效率。
+
+#### vim快速注释代码插件
+
+* [vim-commentary](https://github.com/tpope/vim-commentary)。
+* 记住常用命令gc注释和取消注释。
+* 插件会根据不痛的文件类型使用注释。
+
+#### vim和git，强强联手
+
+* [fugitive](https://github.com/tpope/vim-fugitive)。
+* 能在vim中使用git。
+* Gedit，Gdiff，Gblame，Gcommit。
+* [vim-gitgutter](https://github.com/airblade/vim-gitgutter)。
+* 在vim里显示文件变动。
+* 当我们修改文件之后可以显示当前的问价变动。
+* 哪些行是新增的，哪些行是修改了，哪些行是删除了。
+* 在命令行查看提交记录。
+* [gv.vim](https://github.com/junegunn/gv.vim)。
+* 使用 **:GV ** 命令调用。
+* 可以浏览代码提交变更。
+
+#### vim和Tmux，天作之和
+
+* Tmux一个强大的终端分屏复用工具。
+* 通过brew(mac) apt-get(ubuntu)安装。
+* 可以复用终端，分屏，托管进程等。
+* 在服务器上即使退出服务器，也不会被kill，托管进程也更方便。
+* 可以方便地分割屏幕实现多个进程公用屏幕。
+
+#### Neovim
+
+* [neovim](https://neovim.io)。
+* 开发更加活跃，更加丰富的特性和扩展，异步支持。
+* neovim的设计可以嵌入到很多GUI里，加上好看的外壳。
+
+#### 使用强大的开源vim配置
+
+1. [开源配置一](https://github.com/SpaceVim/SpaceVim)。
+2. [开源配置二](http://github.com/PegasusWang/vim-config)。
+
+***
 
 
 
