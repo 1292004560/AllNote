@@ -521,3 +521,37 @@ void main(void){
 
 ```
 
+***
+
+#### linux下的C语言学习
+
+1. shfit + a 到当前行首。
+2. shift  + i 到当前行尾。
+3. shift  + o 在当前上一行插入。
+4. 标准下C语言缩进为4个空格或一个tab。
+5. sp   max.c新键一个文件。
+6. make工具可以将大型的开发项目分成若干个模块
+
+#### Makefile文件的编写
+
+```makefile
+main.exe:min.o max.o main.c    #要编译成main.exe需要的文件            
+        gcc max.o min.o main.c -o main.exe #需要执行的命令
+max.o:max.c                                
+        gcc -c max.c                       
+min.o:min.c                                #递归的执行
+        gcc -c min.c                       
+```
+
+#### gdb工具的使用
+
+1. 先 gcc -g main.c   -o  main.exe.
+2. gdb  ./main.exe
+3. start 开始调试。
+4. l  是list缩写 表示显示源码。
+5. n是step over缩写跳转到下一行
+6. p  a ，打印变量a
+7. s 是step into 缩写，进入函数里面。
+8. bt查看程序的堆栈。
+9. f  1 跳转到栈编号为一的函数中。
+10. q退出调试。

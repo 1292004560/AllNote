@@ -281,7 +281,7 @@ iw表示inner word 。如果键入viw命令，那么首先v将进入选择模式
 1. 用nmap/vmap/imap定义映射只在normal/visual/insert/分别有效。
 2. **:vmap \  U 将  \  代替 U  把在visual模式下选中的文本大小写(u/U转换大小写)**   。
 3. 如何在insert模式下映射CTRL + d 删除一行 **: imap  <c-d>  <ESC>ddi**
-4. **: namp - dd**          **: nmap \  -**  。
+4. **: nmap - dd**          **: nmap \  -**  。
 5. 当你按下  \ 时，vim会解释为 -  。我们又映射了 \  vim 继续解析为 dd ，即它会删除整行。
 
 ###### 递归与非递归映射
@@ -328,14 +328,14 @@ iw表示inner word 。如果键入viw命令，那么首先v将进入选择模式
 
 #### vim配色方案
 
-1. [vim-hybird配色](https://github.com/w0ng/vim-hybird).
+1. [vim-hybird配色](https://github.com/w0ng/vim-hybrid).
 2. [solarized配色](https://gitgub/altercation/vim-colors-solarized).
 3. [gruvbox配色](https://github.com/morhetz/gruvbox).
 
 #### 文件管理器nerdtree
 
 1. [使用nerdtree插件进行文件目录树管理](https://github.com/scrooloose/nerdtree)。
-2. autocmd vimenter  *NERDTree 可以启动vim是打开。
+2. autocmd vimenter  NERDTree 可以启动vim是打开。
 3. nnoremap <leader> v : NEEDTreeFind<cr> 查找文件打开。
 
 #### 模糊搜索器
