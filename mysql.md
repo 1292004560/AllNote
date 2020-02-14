@@ -154,7 +154,169 @@
 
 ###### now() 返回当前系统日期加时间
 
-###### curdata() 返回但钱系统日期，不包含时间
+###### curdata() 返回系统日期，但不包含时间
+
+###### YEAR()返回年份
+
+1. **SELECT YEAR(now());**
+
+###### MONTH()返回月份
+
+###### STR_TO_DATA将字符通过指定的格式转换成日期
+
+1. ```mysql
+   SELECT STR_TO_DATA('1998-3-2', ' %Y-%c-%d') AS out_put;
+   ```
+
+###### data_format将日期转换为字符
+
+##### 其他函数
+
+###### version();
+
+###### database();
+
+###### user();
+
+##### 流程控制函数
+
+###### if函数
+
+1. if   else效果
+2. **SELECT IF(10>5,'大','小');** 。
+
+###### case函数
+
+1. switch case效果。
+
+2. 语法 。
+
+3. ```mysql
+   case  要判断的字段或表达式
+   
+   when  常量1  then  要显示的值1或语句1
+   
+   when  常量2   then  要显示的值2或语句2
+   
+   ....
+   
+   else 要显示的值n或语句n
+   
+   end
+   ```
+
+4. 可以当表达式和语句使用。
+
+5. ```mysql
+   SELECT salary 原始工资,department_id,
+   CASE department_id
+   	WHEN 30 THEN salary*1.1
+   ELSE salary
+   END  AS 新工资
+   FROM employees;
+   ```
+
+6. ```mysql
+   # case 其用法
+   case  
+   when  条件1  then  要显示的值或语句1
+   when  条件2  then  要显示的值2或语句2
+   ...
+   else  要显示的值n或语句n
+   end
+   ```
+
+##### 分组函数
+
+1. 用于统计使用，又称聚合函数或统计函数。
+2. sum求和。
+3. avg平均值。
+4. max最大值。
+5. min最小值。
+6. count计算个数。
+
+```mysql
+SELECT SUM(salary) 和 ,AVG(salary) 平均值 FROM employees;
+
+#分组函数都忽略null值
+
+
+#分组函数和distinct搭配使用
+
+#去掉重复工资  并计数
+SELECT COUNT(DISTINCT salary) FROM employees;
+
+```
+
+###### count函数
+
+```mysql
+SELECT COUNT(*) FROM employees;
+
+SELECT COUNT(1) FROM employess;
+#效率
+MYISAM  存储引擎下,count(*)的效率高
+INNODB  存储引擎下 ,count(1)和 count(*)差不多
+```
+
+##### 分组查询
+
+```mysql
+语法：
+select  分组函数 ，列(要求出现在 group by 的后面) 
+from 表
+where 筛选条件
+group by 分组列表
+order by 子句
+
+#注意查询列表比较特殊，要求分组函数和 group by 后出现的字段
+
+#查询每个工种的最高工资
+SELECT MAX(salary) ,job_id
+FROM  employees
+GROUP BY job_id;)；
+
+#分组前的筛选
+#查询邮箱中包含a字符的每个部门的平均工资
+SELECT AVG(salary),department_id
+FROM employees
+WHERE email LIKE '%a%'
+GROUP BY department_id;
+
+#分组后筛选
+#查询那个部门的员工数大于2
+SELECT COUNT(*),department_id
+FROM employees
+GROUP BY department_id
+HAVING COUNT(*)>0;
+
+#查询每个工种有奖金的员工的最高工资>12000的工种编号和最高工资
+SELECT MAX(salary),job_id
+FROM employees
+WHERE  commission_pct IS NOT NULL 
+GROUP BY job_id
+HAVING MAX(salary) > 12000;
+
+#注意 where子句后面的条件一定式from表里面有的字段
+#原始表就是可以筛选的字段放在where子句后面，分组后的结果集筛选的字段放在having子句后面
+
+#一般分组函数做条件肯定放在having子句后面
+
+#按多个字段进行分组
+#查询每个部门每个工种的平均工资
+SELECT AVG(salary),department_id,job_id
+FROM employees
+GROUP BY department_id,job_id;
+
+```
+
+
+
+
+
+
+
+
 
 
 
