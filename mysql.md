@@ -310,7 +310,175 @@ GROUP BY department_id,job_id;
 
 ```
 
+##### 连接查询
 
+```mysql
+/*
+含义：又称多表查询
+
+笛卡尔乘积现象：表1有m行，表2有n行，结果  = m * n行
+
+分类：
+		按年代分类：
+			sq192标准 :mysql中仅仅支持内连接
+			sq199标准【推荐】：mysql中支持内连接+外连接(左外和右外) + 交叉连接
+		
+		按功能分类：
+			内链接：
+				等值连接
+				非等值连接
+				自连接
+			
+			外连接
+				左外连接
+				右外连接
+				全外连接
+			交叉连接
+*/
+
+# 一 、sq192标准
+#等值连接
+
+1. n表连接最少需要n-1个链接条件
+
+#查询员工名对应的部门名
+SELECT last_name ,department_name
+FROM employees,departments
+WHERE employees.department_id = departments.department_id;
+
+#注意   如果为表起了别名，则查询的字段就不能用原来的表名去限定
+
+# 加筛选
+
+# 查询有奖金的员工名、部门名
+SELECT last_name,department_name
+FROM employees  e ,departments d
+WHERE e.department_id = d.department_id
+AND e.commission_pct IS NOT NULL;
+
+#查询员工名、部门名和所在的城市
+SELECT last_name,department_name ,city
+FROM employees e,departments d,locations l
+WHERE e.department_id = d.department_id
+AND d.location_id = l.location_id;
+
+# 2.非等值连接
+# 查询员工的工资的工资级别
+SELECT salary,grade_level
+	FROM employees e,job_grades g
+	WHERE salary BETWEEN g.lowest_sal AND g.highest_sal;
+	
+# 3 .自连接
+# 查询 员工名  和上级名称
+SELECT e.employee_id,e.last_name,m.employee_id,m.last_name
+	FROM employees e,employees m
+	WHERE e.manager_id = m.employee_id;
+	
+
+#sq99语法
+
+/*
+
+语法：
+	select 查询列表
+	from 表1 别名 【连接类型】
+	join 表2 别名  
+	on 连接条件
+	【where 筛选条件】
+	【group by 分组】
+	【having 筛选条件】
+	【order by 子句】
+	
+连接类型
+	内链接 ：inner
+	外连接
+		左外 ：left 【outer】
+		右外 ：right 【outer】
+		全外 ：full  【outer】
+    交叉连接 ：cross
+*/
+
+/*
+内连接语法：
+
+select 查询列表
+from 表1 别名
+inner join 表2 别名
+on 连接条件
+
+分类：
+ 	等值
+ 	非等值
+ 	自连接
+*/
+#查询员工名和部门名
+SELECT last_name,department_name
+FROM departments d 
+INNER JOIN employees e
+ON e.department_id = d.department_id;
+
+#查询名字中包含e的员工名和工种名（添加筛选）
+SELECT last_name,job_title
+FROM employees e
+INNER JOIN jobs j
+ON e.job_id = j.job_id
+WHERE e.last_name LIKE '%e%';
+
+#查询哪个部门的员工个数>3的部门名和员工个数，并按个数排序
+SELECT COUNT(*),department_name
+FROM employees e
+INNER JOIN departments d
+ON e.department_id = d.department_id
+GROUP BY department_name
+HAVING COUNT(*) > 3
+ORDER BY COUNT(*) DESC;
+#inner是可以省略
+
+#等值连接
+#查询员工的工资级别
+
+SELECT salary ,grade_level
+FROM employees e
+JOIN job_grades g
+ON e.salary BETWEEN g.lowest_sal AND g.highest_sal;
+
+#自连接
+#查询员工的名字、上级的名字
+SELECT e.last_name,m.last_name
+FROM employees e
+JOIN employees m
+ON e.manager_id = m.employee_id;
+
+/*
+二 、外连接
+
+应用场景：用于查询一个表中有，另一个表没有的记录
+
+特点：
+	1.外连接结果为主表的所有记录
+		如果从表中有和它匹配的则显示匹配的值
+		如果从表中没有和它匹配的则显示null
+		外连接的查询结果 = 内连接查询结果 + 主表中有而从表中没有的数据
+	2.  左外连接，left join 左边的是主表
+		右外连接，right join 右边的是主表
+	3. 左外和右外交换两个表的顺序，可以实现同样的效果
+	4. 全外连接 = 内链接的结果+表1中有但表二没有的 + 表2中有表1没有的（mysql不支持）
+*/
+
+#查询哪个部门没有员工
+SELECT d.*,e.employee_id
+FROM departments d
+LEFT OUTER JOIN employees e
+ON d.department_id = e.department_id
+WHERE e.employee_id IS NULL;
+
+/*
+三 、交叉连接
+	就是笛卡尔集
+*/
+```
+
+##### 子查询
 
 
 
