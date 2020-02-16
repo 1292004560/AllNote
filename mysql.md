@@ -480,6 +480,177 @@ WHERE e.employee_id IS NULL;
 
 ##### 子查询
 
+```mysql
+/*
+含义：
+	出现在其他语句的select语句，称为子查询
+	外部查询称为主查询或外查询
+分类：
+	按子查询出现的位置
+		select后面
+			支持（标量子查询）
+		from后面
+			支持表子查询
+		where或having后面
+			支持标量子查询 列子查询  行子查询
+		exists后面（相关子查询）
+			支持表子查询
+	按结果集的行列数不同：
+		标量子查询（结果集只有一行一列）
+		列子查询（结构集自有一列多行）
+		行子查询（结果集有一行多列）
+		表子查询（结果集一般为多行多列）
+
+*/
+/*
+一 、放在where或having后面
+1、标量子查询（单行子查询）
+2.列子查询（多行子查询）
+3、行子查询（多行多列）
+
+特点
+1. 子查询一般放在小括号内
+2. 子查询一般放在条件的右侧
+3. 标量子查询一般搭配单行操作符 > ,<,=等
+
+ 4.列子查询一般搭配多行操作符使用  in ，any，some，all
+*/
+
+# 1. 标量子查询
+# 谁的工资比Abel高
+SELECT * 
+FROM employees
+WHERE salary > (
+	SELECT salary
+	FROM employees
+	WHERE last_name = 'Abel'
+);
+
+# 返回job_id与141号员工相同，salary 比143号员工多的员工姓名，job_id和工资
+SELECT last_name ,job_id,salary
+FROM employees
+WHERE job_id = (
+		SELECT job_id 
+		FROM employees
+		WHERE employee_id = 141
+)AND salary > (
+		SELECT salary
+		FROM employees
+		WHERE employee_id = 143
+);
+
+#操作符的意思
+# any |some 和子查询返回的某一个值比较
+# all 和子查询返回的所有值比较
+
+#2. 列子查询（多行子查询）
+# 返回location_id 是1400或1700的部门的所有员工的姓名
+SELECT last_name
+FROM employees
+WHERE department_id IN(
+		SELECT DISTINCT department_id
+		FROM departments
+		WHERE location_id IN(1400,1700)
+);
+
+#3 . 行子查询（结果集一行或者多行）
+#查询员工编号最小并且工资最高的员工信息
+SELECT *
+FROM employees
+WHERE (employee_id,salary) = (
+		SELECT MIN(employee_id),MAX(salary)
+		FROM employees
+);
+
+# 二、select 后面
+#查询每个部门的员工个数
+SELECT d.*,(
+		SELECT COUNT(*)
+		FROM employees e
+		WHERE e.department_id = d.department_id
+)  个数
+FROM departments d;
+
+#三、from后面（将子查询的结果充当一张表要求必须起别名）
+# 查询每个部门的平均工资等级
+
+SELECT ag_dep.*,g.grade_level
+FROM (
+		SELECT AVG(salary) ag,department_id
+		FROM employees
+		GROUP BY department_id
+)ag_dep
+INNER JOIN job_grades g
+ON ag_dep.ag BETWEEN lowest_sal AND highest_sal;
+
+#四、exists子查询（相关子查询）
+/*
+	语法：
+	 exists(完整的查询语句);
+*/
+#查询有员工的部门名
+SELECT department_name
+FROM departments d
+WHERE EXISTS(
+		SELECT *
+		FROM employees e
+		WHERE d.department_id = e.department_id
+);
+
+```
+
+##### 分页查询
+
+```mysql
+/*
+语法：
+	select 查询列表
+	from 表
+	【join type join 表2
+	on 连接条件
+	where 筛选条件
+	group by 分组字段
+	having 分组后的筛选
+	order by 排序字段
+	limit offset，size】
+	offset 起始索引（从0开始）
+	szie   要显示的条数
+*/
+
+#查询前5条员工信息
+SELECT * FROM employees LIMIT 0,5;
+```
+
+##### 联合查询
+
+```mysql
+/*
+	union 联合 合并：将多条查询语句结果合并成一个结果
+	
+	语法:
+		查询语句1
+		union
+		查询语句2
+		union
+		查询语句3
+		......
+	应用场景：
+		要查询的结果来自与多个表，且多个表没有直接的连接关系，但查询的信息一般一致。
+	
+	特点：
+		1. 要求多条查询的查询列数是一致的
+		2. 要求多条查询语句的查询的每一列的类型和顺序最好一致
+		3. union关键字默认去重，如果使用union all 可以包含重复项
+*/
+#查询部门编号>90 或邮箱包含a的员工信息
+SELECT * FROM employees WHERE email LIKE  '%a%' OR department_id > 90;#不用联合查询
+
+SELECT * FROM employees WHERE email LIKE '%a%'
+UNION		#如果不想去重  加all										#用联合查询
+SELECT * FROM employees WHERE department_id > 90;
+
+```
+
 
 
 
