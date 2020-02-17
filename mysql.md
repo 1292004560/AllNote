@@ -651,7 +651,245 @@ SELECT * FROM employees WHERE department_id > 90;
 
 ```
 
+#### DML语言
 
+1. 数据操作语言
+2. 插入 **insert** 。
+3. 修改 **update** 。
+4. 删除 **delete** 。
+
+##### 插入语句
+
+```mysql
+/*
+
+语法 一：支持插入多行，支持子查询
+	insert into 表名(列名，....)values(值1,....);  
+	
+	1. 插入的值的类型要与列值兼容。
+语法二	：不支持插入多行，不支持子查询
+	insert into 表名
+	set 列名=值，列名=值
+*/
+INSERT INTO beauty
+SET id = 19,`name`='周水平',phone = '18872308870';
+
+INSERT INTO beauty(id,`name`,phone)
+SELECT 26,'宋希','11111111111';
+```
+
+##### 修改语句
+
+```mysql
+/*
+1. 修改单表记录。
+	
+	语法：
+		update 表名
+		set 列=新值，列=新值，、、、、
+		where 筛选条件
+2. 修改多表记录。
+	sq92语法：
+		update 表1  别名,表2 别名
+		set 列=值.....
+		where 连接条件
+		and 筛选条件;
+		
+	sq99语法：
+		update 表1  别名
+		inner|left|right  join 表2  别名
+		on 连接条件
+		set  列 = 值....
+		where 筛选条件;
+		
+
+*/
+```
+
+##### 删除语句
+
+```mysql
+/*
+	方式一：delete
+	语法：
+	1. 单表删除
+	delete from 表名 where 筛选条件
+	2.多表删除
+	
+	sq92语法
+		delete  表1的别名，表2的别名
+		from 表1 别名，表2 别名
+		where 连接条件
+		and 筛选条件
+	
+	sq99语法
+		delete  表1的别名，表2的别名
+		from 表1 别名
+		inner | left | right join 表2  别名
+		on 连接条件
+		where 筛选条件
+	
+	方式二：turncate
+	语法：
+		turncate table 表名；清空数据
+	
+	turncat与delete比较
+	1.turncat不支持where子句
+	2.turn比delete高
+	3.假如删除的表中有自增长列，
+	如果用delete删除后，在插入数据，自增长列的值从断点开始，
+	而turncat删除后在插入数据，自增张列从1开始
+	4.turncat删除没有返回值，delete删除有返回值。
+	5.turncate删除不能回滚，delete删除可以回滚。
+*/
+```
+
+#### DDL语言
+
+```mysql
+/*
+数据定义语言
+库和表的管理
+
+一、库的管理
+创建、修改、删除
+二、表的管理
+创建、修改、删除
+
+创建：create
+修改：alter
+删除：drop
+
+*/
+```
+
+##### 库的管理
+
+```mysql
+/*
+1.库的创建
+语法：
+create database 【if not exists】 库名；
+
+更改字符集
+	ALTER DATABASE 库名 CHARACTER SET 字符集;
+
+库的删除
+drop database 【if 农田exists】 库名；
+*/
+```
+
+###### 库的表管理
+
+````mysql
+/*
+
+1.表的创建
+
+语法：
+
+create table 表名(
+	列名 列的类型 【（长度） 约束】，
+	。。。
+)
+2 .表的修改
+语法：
+	alter table 表名 add | drop | modify | change  column  列名 【列类型 约束】；
+
+修改列名  ALTER TABLE 表名  CHANGE COLUMN 旧列名  新列名 DATETIME;
+
+
+
+*/
+````
+
+###### 表的删除
+
+* **drop table  【if  not exists】 表名;** .
+
+###### 表的复制
+
+```mysql
+#仅仅复制表的结果
+CREATE TABLE 表名 LIKE 被复制的表名;
+#复制表的结构和数据
+CREATE TABLE 表名
+SELECT * FROM 要复制的表名;
+```
+
+###### 常见的数据类型
+
+1. 数值型
+   1. 整形
+   2. 小数形
+      1. 定点数
+      2. 浮点数
+2. 字符型
+   1. 较短的文本：char ，varchar
+   2. 较长的文本：text，blob(较长的二进制数据)
+3. 日期型
+
+```mysql
+#整型
+#分类
+tinyint, smallint,mediumint ,int / integer, bigint #保存的数据越来越大
+
+#小数
+#1.浮点型
+float(M,D) double(M,D)
+#定点型
+dec(M,D)  decimal(M,D)
+
+#特点
+1. M :小数不为 + 整数部位
+   D ：小数部位
+2.M D都可以省略
+如果是 decimal 。则 M 默认为 10，D 默认为 0
+如果是 float 和 double ，则会根据插入的数值的精度来决定精度
+
+3. 定点型的精确度高，若干要求插入的数值的精度较高如货币运算等则考虑使用
+
+#字符型
+	
+char  char(M)  M是最大字符数，M可以省略，默认为1，固定长度  比较耗费空间  效率高   
+
+varchar varchar(M) M不可省略 ，可变字符长度  比较节省空间  效率低
+
+```
+
+###### 常见约束
+
+1. **NOT NULL** :非空，用于保证该字段的值不能为空。
+
+2. **DEFAULT**  : 默认约束，用于保证该字段有默认值。
+
+3. **PRIMARY KEY**: 主键约束，用于保证该字段具有唯一性，并且非空。
+
+4. **UNIQUE** : 唯一，用于保证该字段的值具有唯一性，可以为空。
+
+5. **CHECK** : 检查约束【mysql不支持】。
+
+6. **FOREIGN KEY** :外键约束，用于限制两个表的关系，用于保证该字段的值必须来自于主表的关联列的值，在从表添加外键约束，用于引用主表中某列的值。
+
+7. 约束添加分类
+
+   1. 列级约束
+
+      ​	六大约束语法上都支持，但外键约束没有效果。
+
+   2. 表级约束
+
+      ​	除了非空约束、默认，其他的都支持。
+
+   **CREATE TABLE 表名(**
+
+   ​	字段名 字段类型  列级约束,
+
+   ​	表级约束
+
+   **)**
+
+****
 
 
 
