@@ -34,6 +34,7 @@
 9.  **show index from 表名;** 查看此表中所有的索引。
 10.  **select @@tx_isolation** 查看事务隔离级别。
 11.  **set session transaction isolation level read  uncommitted ** 设置事务隔离级别 未 **读未提交数据** 
+12.  **set global transaction isolation level read  uncommitted**  设置全局隔离级别。
 
 ##### mysql语法规范
 
@@ -958,7 +959,9 @@ start transaction; #可选
 #步骤3：结束事务
 commit;#提交事务
 （ rollback );#回滚事务
+（ savepoint name);#设置保存点
 
+#事务执行时  turncate 不支持回滚
 ```
 
 ##### 数据库的隔离级别
@@ -976,7 +979,221 @@ commit;#提交事务
 | REPEATABLE READ(可重复读 **默认**) | 确保事务可以多次从一个字段中读取相同的值，在这个事务持续期间，禁止其他事务对这个字段更新，可以避免脏读和不可重复读，但幻读的问题仍然存在 |
 | SERIALIZABLE(串行化)               | 确保事务可以从一个表中读取相同的行，在这个事务事务持续期间，禁止其他事务对该表执行插入，更新和删除，所有并发问题都可以避免，但是性能十分低下 |
 
- 
+***
+
+#### 视图
+
+```mysql
+# 一、创建视图
+/*
+语法：
+	create view 视图名
+	as
+	查询语句;
+*/
+
+#创建一个包含部门名，员工名，和工种信息的视图
+CREATE VIEW my_view
+AS
+SELECT last_name,department_name,job_title
+FROM employees e
+JOIN departments d ON  e.department_id = d.department_id
+JOIN jobs j  ON j.job_id = e.job_id;
+
+#使用视图
+SELECT * FROM my_view;
+
+# 视图的好处
+/*
+1. 重用sql语句
+2. 简化复杂的sql操作，不必知道它的查询细节
+3. 保护数据，提高安全性
+*/
+
+#二、视图的修改
+
+#方式一
+/*
+create  or replace view 视图名
+as
+查询语句；
+*/
+
+#方式二
+/*
+语法：
+alter view 视图名
+as 
+查询语句；
+*/
+
+#三、删除视图
+/*
+语法：
+	drop  view  视图名、视图2；
+*/
+
+#四、查看视图
+#desc  视图名；或  show  create  view  视图名；
+```
+
+##### 视图的更新
+
+1. 可以对视图进行增删改操作，和对表的增删改的操作语法一致。
+2. 具备以下关键字的视图不允许更新操作。
+   1. sql语句包含分组函数、distinct 、group by、having，union、union all
+   2. 常量视图。
+   3. select包含子查询。
+   4. 有join的sql语句。
+   5. from一个不能更新的视图。
+   6. where 子句的子查询引用了from子句的表。
+
+##### 视图和表对比
+
+|      |    创建语法    |    是否占用物理空间     |           使用           |
+| :--: | :------------: | :---------------------: | :----------------------: |
+| 视图 |  create  view  | 只是保存了sql语句的逻辑 | 增删改查，一般不能增删改 |
+|  表  | create   table |       保存了数据        |         增删改查         |
+
+****
+
+#### 变量
+
+1. 系统变量。
+   1. 全局变量。
+   2. 会话变量。
+2. 自定义变量。
+   1. 用户变量。
+   2. 局部变量。
+
+##### 系统变量
+
+1. 说明：变量有系统提供，不是用户自定义，属于服务器层面。
+2. 使用语法。
+   1. 查看所有系统变量 **show  global 【seesion】variables;** 。
+   2. 查看满足条件的部分系统变量 **show  global 【seesion】variables  like ‘%char%’;** 。
+   3. 查看某个指定的系统变量 **select  @@global |【session】.系统变量名;** 。
+   4. 为某个系统变量赋值 。
+      1. **select global |【session】 系统变量名 = 值;**
+      2. **set @@global | 【session 】系统变量名 = 值;**
+   5. 注意：如果是全局级别，则需要加global，如果是会话级别，可加session可不写。
+3. 作用域：服务器每次启动将为所有的全局变量赋初始值，针对于所有的会话(连接)有效，但不能跨重启。
+
+##### 自定义变量
+
+###### 用户变量
+
+1. 作用域：针对于当前会话(连接)有效，同于会话变量的作用域。
+2. 使用
+   1. 声明并初始化
+      1. **set @用户变量名 = 值;**
+      2. **set  @用户变量名 := 值;**
+      3. **select  @用户变量名 = 值;** 
+   2. 赋值(更新用户变量的值)
+      1. 方式一: 通过 **select** 或 **set** 
+      2. 方式二 : **select  字段  into   变量名 from  表**
+3. 应用在任何地方 ，可以应用在begin  end 里面。
+
+
+
+###### 局部变量
+
+1. 作用域 ： 仅仅在定义它的begin  end 中有效。
+2. 声明
+   1. **declare  变量名  类型**
+   2. **declare 变量名  类型 default 值**
+3. 赋值
+   1. **set 局部变量名 = 值;**
+   2. **set   局部变量名 := 值;**
+   3. **select  @ 局部变量名 = 值;** 
+   4. **select  字段  into   变量名 from  表**
+
+###### 用户变量和局部变量对比
+
+|          | 作用域       | 定义和使用位置                    | 语法                                            |
+| -------- | ------------ | --------------------------------- | ----------------------------------------------- |
+| 用户变量 | 当前会话     | 会话中的任何地方                  | 必须加@符号，不用加限定类型                     |
+| 局部变量 | BEGIN END 中 | 只能在begin  end 中，且为第一句话 | 一般不加@符号(selec 赋值时要加)，需要加限定类型 |
+
+***
+
+#### 存储过程和函数
+
+1. 存储过程和函数：类似于Java中的方法。
+2. 好处。
+   1. 提高代码的重用性。
+   2. 简化操作。
+
+##### 存储过程
+
+1. 含义：一组预先编译好的SQL语句，理解成批处理语句。
+2. 好处。
+   1. 提高代码的重用性。
+   2. 简化操作。
+   3. 减少了编译次数并且减少了和数据库服务器连接的次数，提高了效率。
+
+```mysql
+#一、创建语法
+CREATE PROCEDURE  存储过程名(参数列表)
+BEGIN
+			存储过程体(一组合法的SQL语句)
+		
+END
+
+/*
+注意：
+	1.参数列表包含三部分
+	参数模式   参数名   参数类型
+	
+	举例 
+	IN  name  VARCHAR(20)
+	参数模式
+	IN：该参数可以作为输入，也就是该参数需要调用方传入值
+	OUT：该参数可以作为输出，也就是该参数可以作为返回值
+	INOUT：该参数既可以作为输入又可以作为输出，也就是该参数即需要传入值，又可以返回值
+	
+	2. 如果存储过程体仅仅只有一句话，begin end 可以省略
+	存储过程中每条SQL语句的结尾要求必须加分号。
+	存储过程的结尾可以使用 delimiter 重新设置
+	
+	语法：
+	delimiter 结束标记
+	案例
+	delimiter  $
+	
+	
+调用语法:
+call  存储过程名(实参列表);
+*/
+
+#IN模式参数存储过程
+CREATE PROCEDURE mp(IN username VARCHAR(20), IN password  VARCHAR(20))
+BEGIN
+					DECLARE result  INT  DEFAULT 0; #声明并初始化
+					SELECT COUNT(*) INTO result #赋值
+					FROM admin 
+					WHERE admin.username = username
+					AND  admin.`password` = password;
+					
+					SELECT IF(result > 0,'成功','失败');#使用
+END 
+
+#OUT模式参数存储过程
+
+CREATE PROCEDURE my(IN beautyName VARCHAR(20),OUT boyName VARCHAR(20))
+BEGIN
+					SELECT bo.boyName INTO boyName
+					FROM boys bo
+					INNER JOIN beauty b ON bo.id = b.boyfriend_id
+					WHERE b.`name` = beautyName;
+END
+#调用
+CALL my('小昭',@bname);
+SELECT @bname;
+
+#二、删除存储过程
+#语法 ： drop  procedure  存储过程名;  存储过程一次只能删一个
+```
 
 
 
