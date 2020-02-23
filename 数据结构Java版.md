@@ -416,11 +416,11 @@ public class Heap<E extends Comparable<E>> {
 
 **基于区间的统计查询**
 
-![segmentTree](E:\workSpace\AllNote\imges\segmentTree.png)
+![segmentTree](.\imges\segmentTree.png)
 
 **线段树不是完全二叉树但是是一个平衡二叉树**
 
 **平衡二叉树定义是最大深度与最小深度相差小于或等于1**
 
-![](E:\workSpace\AllNote\imges\segmentTree02.png)
+![](.\imges\segmentTree02.png)
 

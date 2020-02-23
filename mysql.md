@@ -1193,7 +1193,256 @@ SELECT @bname;
 
 #二、删除存储过程
 #语法 ： drop  procedure  存储过程名;  存储过程一次只能删一个
+
+#三、查看存储过程
+SHOW CREATE PROCEDURE  存储过程名;
+
 ```
+
+*****
+
+
+
+##### 函数
+
+1. 与存储过程的区别
+   1. 存储过程可以有0个返回，也可以有多个返回 ，适合做批量插入，批量更新。
+   2. 函数：有且仅有一个返回 ，适合做处理数据后返回一个结果。
+
+```mysql
+#一、创建语法
+CREATE FUNCTION 函数名(参数名列表)  RETURNS  返回类型
+BEGIN
+	函数体
+END
+/*
+注意：
+	1. 参数列表包含两部分  参数名  参护士类型。
+	2. 函数体：肯定会员 return语句，如果没有会报错。
+	   如果return语句没有放在函数体的最后也不报错，但不建议。
+	3. 函数体中仅有一句话，则可以省略begin  end。
+	4. 使用 delimiter 语句设置结束标记。
+*/
+
+#二、调用语法
+SELECT 函数名(参数列表)
+
+#案例
+delimiter $
+CREATE  FUNCTION myf1()  RETURNS  INT
+BEGIN
+				DECLARE c INT DEFAULT 0;#定义变量
+				SELECT COUNT(*) INTO c #赋值
+				FROM employees ;
+				RETURN c;
+END $
+
+#三、查看函数
+SHOW CREATE FUNCTION 函数名;
+#四、删除函数
+DROP FUNCTION 函数名;
+```
+
+#### 流程控制结构
+
+##### case结构
+
+```mysql
+#情况一：类似于Java中的switch语句，一般用于实现等值判断
+#语法：
+		case  变量 | 表达式 | 字段
+		when  要判断的值1  then  返回的值1或语句1
+		when  要判断的值2  then  返回的值2或语句2
+		...
+		else 要返回的值n
+		end
+#情况一：类似于Java中的多重if语句，一般用于实现区间判断
+#语法：
+		case 
+        when  要判断的条件1  then  返回的值1或语句1
+        when  要判断的条件2  then  返回的值2或语句2
+        ....
+        else  要返回的值n
+        end  case;
+        
+   /*
+   特点：
+   		1.可以作为表达式，嵌套在其他语句中使用，可以放在任何地方，begin  and 中 或 begin 			and	外面。
+   		可以作为独立的语句使用只能放在 begin and中。
+   		2.如果when 中的值满足或条件成立，则执行对应的then 后面的语句，并且结束case。
+   		3.else 可以省略	，如果else省略了，并且所有的when条件都不满足，则返回null。
+   */
+```
+
+##### if结构
+
+```mysql
+/*
+功能 ： 实现多重分支。
+语法：
+	if      条件1 then 语句1;
+	elseif 	条件2 then 语句2;
+	....
+	【else  语句n】;
+	end if;
+只能反正begin end 中
+*/
+
+CREATE FUNCTION test_if(`score` INT) RETURNS CHAR
+BEGIN 
+				IF  `score` >= 90  AND `score` <= 100 THEN  RETURN 'A';
+        ELSEIF  `score`  >= 80  THEN  RETURN  'B';
+				ELSEIF  `score`  >= 60  THEN  RETURN 'C';
+				ELSE  RETURN 'D';
+				END IF;
+END 
+
+```
+
+##### 循环结构
+
+```mysql
+/*
+分类 ：
+		loop  while  repeat
+循环控制：
+		iterate  类似于 continue ，继续，结束本次循环，继续下次循环
+		leave   类似于break  ，跳出本次循环，结束当前所在的循环
+
+1. while
+语法：
+	【标签 :】while 循环条件 do
+					 循环体;
+			  end  while  【标签】;
+	
+2. loop
+语法：
+	【标签 :】loop
+			 循环体;
+	end loop 【标签:】;
+
+3.repeat
+语法：
+	【标签:】repeat 
+			循环体;
+	until 结束循环的条件
+	end  repeat 【标签:】;
+*/
+# while 批量插入
+CREATE PROCEDURE pro_while(IN insertCount INT)
+BEGIN
+		DECLARE  i  INT DEFAULT 1;
+		WHILE i <= inserCount DO 
+			INSERT INTO admin(username,password) VALUES('1'+i,'1111');
+			SET i = i +1;
+		END WHILE;
+END
+
+#金典案例
+CREATE PROCEDURE test_randstr_insert(IN insertCount INT)
+BEGIN
+	DECLARE i INT DEFAULT 1;
+	DECLARE str VARCHAR(26) DEFAULT 'abcdefghijklmnopqrstuvwxyz';
+	DECLARE startIndex INT;#代表初始索引
+	DECLARE len INT;#代表截取的字符长度
+	WHILE i<=insertcount DO
+		SET startIndex=FLOOR(RAND()*26+1);#代表初始索引，随机范围1-26
+		SET len=FLOOR(RAND()*(20-startIndex+1)+1);#代表截取长度，随机范围1-（20-startIndex+1）
+		INSERT INTO stringcontent(content) VALUES(SUBSTR(str,startIndex,len));
+		SET i=i+1;
+	END WHILE;
+
+END 
+
+CALL test_randstr_insert(10)$
+```
+
+****
+
+#### mysql的架构介绍
+
+#####  linux版的mysql安装
+
+1. 查看mysql是否安装 **rmp  -qa| grep -i mysql**
+2. 安装mysql服务端和服务端 **rpm -ivh   rmp软件包名称**
+3. 查看mysql是否安装 **ps -ef | grep mysql**
+4. 查看mysql用户组  **cat /etc/group  | grep mysql**
+5. 查看mysql 版本 **mysqladmin -version**
+6. 启动mysql 服务 **service mysql start**
+7. 关闭mysql服务 **service mysql stop**
+8. 设置mysql密码 **/usr/bin/mysqladmin  -uroot  password  123456**
+9. 连接mysql  **mysql  -u root -p 123456**
+10. 设置mysql开机自启动 **chkconfig mysql on**
+11. 查看mysql运行级别  **chkconfig --list  | grep mysql**
+12. 查看运行级别的含义 **cat /etc/inittab**
+13. 查看mysql是否开机自启动 **ntsysv**
+
+###### 在Linux下查看mysql安装目录 **ps -ef | grep mysql**
+
+| 路经              | 解释                    | 备注                         |
+| ----------------- | ----------------------- | ---------------------------- |
+| /var/lib/mysql/   | mysql数据文件的存放路径 | 数据库的数据存放磁盘位置     |
+| /usr/share/mysql  | 配置文件目录            | mysqld.service命令及配置文件 |
+| /etc/init.d/mysql | 启停相关脚本            |                              |
+
+###### mysql各种文件介绍
+
+1. 二进制日志文件 **log-bin** 主要用于主从复制。
+2. 错误日志文件 :**log-err** 默认关闭的，记录严重的警告和错误信息，每次启动和关闭的详细信息等。
+3. 查询日志 **log**  : 默认关闭，记录查询的sql语句，如果开启会减低mysql的性能，因为记录日志也是要消耗系统资源。
+4. **frm文件** 存放表结构。
+5. **myd文件** 存放表数据。
+6. **myi** 存放表索引。
+
+###### mysql逻辑架构介绍
+
+1.  **连接层** :最上层是一些客户端和连接服务，包含本地sock通信和大多数基于客户端/服务端工具实现的类似于tcp/ip的通信。主要完成一些类似于连接处理、授权认证、及相关的安全方案。在该层上引入了线程池的概念，为通过认证安全接入的客户端提供线程。同样在该层上可以实现基于SSL的安全链接。服务器也会为安全接入的每个客户端验证它所具有的操作权限。
+2. **服务层** :  第二层架构主要完成大多少的核心服务功能，如SQL接口，并完成缓存的查询，SQL的分析和优化及部分内置函数的执行。所有跨存储引擎的功能也在这一层实现，如过程、函数等。在该层，服务器会解析查询并创建相应的内部解析树，并对其完成相应的优化如确定查询表的顺序，是否利用索引等，最后生成相应的执行操作。如果是select语句，服务器还会查询内部的缓存。如果缓存空间足够大，这样在解决大量读操作的环境中能够很好的提升系统的性能。
+3. **引擎层** :   存储引擎层，存储引擎真正的负责了MySQL中数据的存储和提取，服务器通过API与存储引擎进行通信。不同的存储引擎具有的功能不同，这样我们可以根据自己的实际需要进行选取。
+4. **存储层** ：数据存储层，主要是将数据存储在运行于裸设备的文件系统之上，并完成与存储引擎的交互。
+
+###### mysql存储引擎
+
+1.  **查看mysql现在已提供什么存储引擎  show engines;** 。
+2. **查看mysql当前默认的存储引擎  show variables like '%storage_engine%';**。
+3. **MyISAM 与InnoDB对比**
+
+| 对比项   |                         MyISAM                         |                            InnoDB                            |
+| -------- | :----------------------------------------------------: | :----------------------------------------------------------: |
+| 主外键   |                         不支持                         |                             支持                             |
+| 事务     |                         不支持                         |                             支持                             |
+| 行表锁   | 表锁，即使操作一条记录也会锁住整个表，不适合高并发操作 | 行锁，操作时只锁某一行，部队其他行有影响，**适合高并发操作** |
+| 缓存     |               只缓存索引，不缓存真实数据               | 不仅缓存索引，还要缓存真实数据，对内存要求较高，而且内存大小对性能有决定性的影响 |
+| 表空间   |                           小                           |                              大                              |
+| 关注点   |                          性能                          |                             事务                             |
+| 默认安装 |                           Y                            |                              Y                               |
+
+***
+
+
+
+#### 索引优化分析
+
+1. **性能下降SQL，慢执行时间长，等待时间长** 
+
+   1. 查询语句写的烂
+   2. 索引失效
+      1. 单值索引
+      2. 复合索引
+   3. 关联查询太多join（设计缺陷或不得已的需求）
+   4. 服务器调优及各个参数设置（缓冲、线程数等）
+
+2. **常见通用的Join查询** 
+
+   1. mysql对sql的执行顺序 ![1](.\imges\sql 执行路线.png)
+
+3. **join图**
+
+   ​	![1](.\imges\各种join连接.png)
+
+4. 
+
+
 
 
 
