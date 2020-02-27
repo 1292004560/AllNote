@@ -1464,7 +1464,7 @@ CALL test_randstr_insert(10)$
 2. 虽然索引大大提高了查询速度，同时却会降低更新表的速度，如对表进行INSERT、UPDATE和DELETE。因为更新表时，MySQL不仅要保存数据，还要保存一下索引文件每次更新添加了索引列的字段，都会调整因为更新所带来的键值变化后的索引信息。
 3. 索引只是提高效率的一个因素，如果你的MySQL有大数据量的表，就需要花时间研究建立最优秀的索引，或优化查询语句。
 
-##### mysql索引分类
+###### mysql索引分类
 
 1. 单值索引
 
@@ -1540,6 +1540,348 @@ CALL test_randstr_insert(10)$
 
 ****
 
+##### 性能分析
+
+###### MySql Query Optimizer
+
+* Mysql中有专门负责优化SELECT语句的优化器模块，主要功能：通过计算分析系统中收集到的统计信息，为客户端请求的Query提供他认为最优的执行计划（他认为最优的数据检索方式，但不见得是DBA认为是最优的，这部分最耗费时间）
+*  当客户端向MySQL 请求一条Query，命令解析器模块完成请求分类，区别出是 SELECT 并转发给MySQL Query Optimizer时，MySQL Query Optimizer 首先会对整条Query进行优化，处理掉一些常量表达式的预算，直接换算成常量值。并对 Query 中的查询条件进行简化和转换，如去掉一些无用或显而易见的条件、结构调整等。然后分析 Query 中的 Hint 信息（如果有），看显示Hint信息是否可以完全确定该Query 的执行计划。如果没有 Hint 或Hint 信息还不足以完全确定执行计划，则会读取所涉及对象的统计信息，根据 Query 进行写相应的计算分析，然后再得出最后的执行计划。
+
+###### MySQL常见瓶颈
+
+1. CPU：CPU在饱和的时候一般发生在数据装入内存或从磁盘上读取数据时候
+2. IO：磁盘I/O瓶颈发生在装入数据远大于内存容量的时候
+3. 服务器硬件的性能瓶颈：top,free, iostat和vmstat来查看系统的性能状态
+
+###### Explain
+
+1. 是什么(查看执行计划)
+
+   * 使用EXPLAIN关键字可以模拟优化器执行SQL查询语句，从而知道MySQL是
+     如何处理你的SQL语句的。分析你的查询语句或是表结构的性能瓶颈
+
+2. 能干嘛
+
+   * 表的读取顺序
+   * 数据读取操作的操作类型
+   * 哪些索引可以使用
+   * 哪些索引被实际使用
+   * 表之间的引用
+   * 每张表有多少行被优化器查询
+
+3. 怎么玩
+
+   * Explain + SQL语句
+
+4. 各字段解释
+
+   * **id** 
+     1. id相同，执行顺序由上至下
+     2. id不同，如果是子查询，id的序号会递增，id值越大优先级越高，越先被执行
+     3. id相同不同，同时存在
+   * **select_type** : 查询的类型，主要是用于区别 普通查询、联合查询、子查询等的复杂查询
+     1. **SIMPLE** : 简单的 select 查询,查询中不包含子查询或者UNION
+     2. **PRIMARY** : 查询中若包含任何复杂的子部分，最外层查询则被标记为
+     3. **SUBQUERY** : 在SELECT或WHERE列表中包含了子查询
+     4. **DERIVED** : 在FROM列表中包含的子查询被标记为DERIVED(衍生)
+        MySQL会递归执行这些子查询, 把结果放在临时表里。
+     5. **UNION** : 若第二个SELECT出现在UNION之后，则被标记为UNION；
+        若UNION包含在FROM子句的子查询中,外层SELECT将被标记为：DERIVED
+     6. **UNION RESULT** : 从UNION表获取结果的SELECT
+   * **table** : 显示这一行的数据是关于哪张表的
+   * **type** : 显示查询使用了何种类型，从最好到最差依次是:
+     system>const>eq_ref>ref>range>index>ALL
+     1. **system** : 表只有一行记录（等于系统表），这是const类型的特列，平时不会出现，这个也可以忽略不计
+     2. **const** : 表示通过索引一次就找到了,const用于比较primary key或者unique索引。因为只匹配一行数据，所以很快如将主键置于where列表中，MySQL就能将该查询转换为一个常量
+     3. **eq_ref** : 唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配。常见于主键或唯一索引扫描
+     4. **ref** : 非唯一性索引扫描，返回匹配某个单独值的所有行.
+        本质上也是一种索引访问，它返回所有匹配某个单独值的行，然而，
+        它可能会找到多个符合条件的行，所以他应该属于查找和扫描的混合体
+     5. **range** : 只检索给定范围的行,使用一个索引来选择行。key 列显示使用了哪个索引
+        一般就是在你的where语句中出现了between、<、>、in等的查询
+        这种范围扫描索引扫描比全表扫描要好，因为它只需要开始于索引的某一点，而结束语另一点，不用扫描全部索引。
+     6. **index** : Full Index Scan，index与ALL区别为index类型只遍历索引树。这通常比ALL快，因为索引文件通常比数据文件小。
+        （也就是说虽然all和Index都是读全表，但index是从索引中读取的，而all是从硬盘中读的）
+     7. **all** : Full Table Scan，将遍历全表以找到匹配的行
+     8. **备注：一般来说，得保证查询至少达到range级别，最好能达到ref。**
+   * **possible_keys** 
+     1. 显示可能应用在这张表中的索引，一个或多个。
+        查询涉及到的字段上若存在索引，则该索引将被列出，但不一定被查询实际使用
+   * **key**
+     1. 实际使用的索引。如果为NULL，则没有使用索引
+     2. 查询中若使用了覆盖索引，则该索引仅出现在key列表中
+   * **key_len** 
+     1. 表示索引中使用的字节数，可通过该列计算查询中使用的索引的长度。在不损失精确性的情况下，长度越短越好
+     2. key_len显示的值为索引字段的最大可能长度，并非实际使用长度，即key_len是根据表定义计算而得，不是通过表内检索出的
+   * **ref** ：显示索引的哪一列被使用了，如果可能的话，是一个常数。哪些列或常量被用于查找索引列上的值
+   * **rows** ：根据表统计信息及索引选用情况，大致估算出找到所需的记录所需要读取的行数
+   * **Extra** ：包含不适合在其他列中显示但十分重要的额外信息
+     1. **Using filesort ** ：说明mysql会对数据使用一个外部的索引排序，而不是按照表内的索引顺序进行读取。MySQL中无法利用索引完成的排序操作称为“文件排序”
+     2. **Using temporary ** ：使了用临时表保存中间结果,MySQL在对查询结果排序时使用临时表。常见于排序 order by 和分组查询 group by。
+     3. **USING index** ：表示相应的select操作中使用了覆盖索引(Covering Index)，避免访问了表的数据行，效率不错！
+        如果同时出现using where，表明索引被用来执行索引键值的查找;
+        如果没有同时出现using where，表明索引用来读取数据而非执行查找动作。
+        * **覆盖索引(Covering Index)** ：就是select的数据列只用从索引中就能够取得，不必读取数据行，MySQL可以利用索引返回select列表中的字段，而不必根据索引再次读取数据文件,换句话说查询列要被所建的索引覆盖。
+     4. **Using where** ：表明使用了where过滤
+     5. **using join buffer** ：使用了连接缓存：
+     6. **impossible where** ：where子句的值总是false，不能用来获取任何元组
+     7. **select tables optimized away** ：在没有GROUPBY子句的情况下，基于索引优化MIN/MAX操作或者对于MyISAM存储引擎优化COUNT(*)操作，不必等到执行阶段再进行计算，查询执行计划生成的阶段即完成优化。
+     8. **distinct** ：优化distinct操作，在找到第一匹配的元组后即停止找同样值的动作
+
+
+###### 索引优化
+
+1. 索引分析
+
+   1. 单表
+
+      ```mysql
+      #建表SQL
+      CREATE TABLE IF NOT EXISTS `article` (
+      `id` INT(10) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+      `author_id` INT(10) UNSIGNED NOT NULL,
+      `category_id` INT(10) UNSIGNED NOT NULL,
+      `views` INT(10) UNSIGNED NOT NULL,
+      `comments` INT(10) UNSIGNED NOT NULL,
+      `title` VARBINARY(255) NOT NULL,
+      `content` TEXT NOT NULL
+      );
+      
+      
+      INSERT INTO `article`(`author_id`, `category_id`, `views`, `comments`, `title`, `content`) VALUES
+      (1, 1, 1, 1, '1', '1'),
+      (2, 2, 2, 2, '2', '2'),
+      (1, 1, 3, 3, '3', '3');
+      
+      
+      SELECT * FROM article;
+      #案例
+      #查询 category_id 为 1 且 comments 大于 1 的情况下,views 最多的 article_id。 
+      EXPLAIN SELECT id,author_id FROM article WHERE category_id = 1 AND comments > 1 ORDER BY views DESC LIMIT 1;
+      #结论：很显然,type 是 ALL,即最坏的情况。Extra 里还出现了 Using filesort,也是最坏的情况。优化是必须的。
+      
+      #开始优化：
+      # 1.1 新建索引+删除索引
+      #ALTER TABLE `article` ADD INDEX idx_article_ccv ( `category_id` , `comments`, `views` );
+      create index idx_article_ccv on article(category_id,comments,views);
+      DROP INDEX idx_article_ccv ON article
+      
+      
+      # 1.2 第2次EXPLAIN
+      EXPLAIN SELECT id,author_id FROM `article` WHERE category_id = 1 AND comments >1 ORDER BY views DESC LIMIT 1;
+      EXPLAIN SELECT id,author_id FROM `article` WHERE category_id = 1 AND comments =3 ORDER BY views DESC LIMIT 1
+      #结论：
+      #type 变成了 range,这是可以忍受的。但是 extra 里使用 Using filesort 仍是无法接受的。
+      #但是我们已经建立了索引,为啥没用呢?
+      #这是因为按照 BTree 索引的工作原理,
+      # 先排序 category_id,
+      # 如果遇到相同的 category_id 则再排序 comments,如果遇到相同的 comments 则再排序 views。
+      #当 comments 字段在联合索引里处于中间位置时,
+      #因comments > 1 条件是一个范围值(所谓 range),
+      #MySQL 无法利用索引再对后面的 views 部分进行检索,即 range 类型查询字段后面的索引无效。
+      
+      
+      # 1.3 删除第一次建立的索引
+      DROP INDEX idx_article_ccv ON article;
+      
+      # 1.4 第2次新建索引
+      #ALTER TABLE `article` ADD INDEX idx_article_cv ( `category_id` , `views` ) ;
+      create index idx_article_cv on article(category_id,views);
+      
+      # 1.5 第3次EXPLAIN
+      EXPLAIN SELECT id,author_id FROM article WHERE category_id = 1 AND comments > 1 ORDER BY views DESC LIMIT 1;
+      #结论：可以看到,type 变为了 ref,Extra 中的 Using filesort 也消失了,结果非常理想。
+      DROP INDEX idx_article_cv ON article;
+      
+      ```
+
+   2. 两表
+
+      ```mysql
+      #建表SQL
+      
+      CREATE TABLE IF NOT EXISTS `class` (
+      `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+      `card` INT(10) UNSIGNED NOT NULL,
+      PRIMARY KEY (`id`)
+      );
+      CREATE TABLE IF NOT EXISTS `book` (
+      `bookid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+      `card` INT(10) UNSIGNED NOT NULL,
+      PRIMARY KEY (`bookid`)
+      );
+      
+      
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO class(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      
+      
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO book(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      
+      #案例
+      
+      
+      # 下面开始explain分析
+      EXPLAIN SELECT * FROM class LEFT JOIN book ON class.card = book.card;
+      #结论：type 有All
+      
+      
+      # 添加索引优化
+      ALTER TABLE `book` ADD INDEX Y ( `card`);
+      
+      
+      # 第2次explain
+      EXPLAIN SELECT * FROM class LEFT JOIN book ON class.card = book.card;
+      #可以看到第二行的 type 变为了 ref,rows 也变成了优化比较明显。
+      #这是由左连接特性决定的。LEFT JOIN 条件用于确定如何从右表搜索行,左边一定都有,
+      #所以右边是我们的关键点,一定需要建立索引。
+      
+      
+      # 删除旧索引 + 新建 + 第3次explain
+      DROP INDEX Y ON book;
+      ALTER TABLE class ADD INDEX X (card);
+      EXPLAIN SELECT * FROM class LEFT JOIN book ON class.card = book.card;
+      
+      
+      
+      
+      # 然后来看一个右连接查询:
+      #优化较明显。这是因为 RIGHT JOIN 条件用于确定如何从左表搜索行,右边一定都有,所以左边是我们的关键点,一定需要建立索引。
+      EXPLAIN SELECT * FROM class RIGHT JOIN book ON class.card = book.card;
+      DROP INDEX X ON class;
+      ALTER TABLE book ADD INDEX Y (card);
+      # 右连接，基本无变化
+      EXPLAIN SELECT * FROM class RIGHT JOIN book ON class.card = book.card;
+       
+      
+      
+       
+      ```
+
+   3. 三表
+
+      ```mysql
+      #建表SQL
+      
+      
+      CREATE TABLE IF NOT EXISTS `phone` (
+      `phoneid` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+      `card` INT(10) UNSIGNED NOT NULL,
+      PRIMARY KEY (`phoneid`)
+      ) ENGINE = INNODB;
+      
+      
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      INSERT INTO phone(card) VALUES(FLOOR(1 + (RAND() * 20)));
+      
+      #案例
+      
+      
+      
+      
+      ALTER TABLE `phone` ADD INDEX z ( `card`);
+      
+      
+      ALTER TABLE `book` ADD INDEX Y ( `card`);#上一个case建过一个同样的
+      
+      
+      
+      
+      EXPLAIN SELECT * FROM class LEFT JOIN book ON class.card=book.card LEFT JOIN phone ON book.card = phone.card;
+      
+      
+      # 后 2 行的 type 都是 ref 且总 rows 优化很好,效果不错。因此索引最好设置在需要经常查询的字段中。
+      ==================================================================================
+      【结论】
+      Join语句的优化
+      
+      尽可能减少Join语句中的NestedLoop的循环总次数；“永远用小结果集驱动大的结果集”。
+      优先优化NestedLoop的内层循环；
+      保证Join语句中被驱动表上Join条件字段已经被索引；
+      当无法保证被驱动表的Join条件字段被索引且内存资源充足的前提下，不要太吝惜JoinBuffer的设置；
+      ```
+
+2. 索引失效(应该避免)
+
+   1. 全值匹配我最爱
+   2. 最佳左前缀法则 : 如果索引了多列，要遵守最左前缀法则。指的是查询从索引的最左前列开始并且不跳过索引中的列。
+   3. 不在索引列上做任何操作（计算、函数、(自动or手动)类型转换），会导致索引失效而转向全表扫描
+   4. 存储引擎不能使用索引中范围条件右边的列
+   5. 尽量使用覆盖索引(只访问索引的查询(索引列和查询列一致))，减少select *
+   6. mysql 在使用不等于(!= 或者<>)的时候无法使用索引会导致全表扫描
+   7. is null ,is not null 也无法使用索引
+   8. like以通配符开头('%abc...')mysql索引失效会变成全表扫描的操作
+   9. 字符串不加单引号索引失效
+   10. 少用or,用它来连接时会索引失效
+
+3. 小总结
+
+   | 假设index(a,b,c)                       | Where语句索引是否被使用          |
+   | -------------------------------------- | -------------------------------- |
+   | where a = 3Y                           | 使用到a                          |
+   | where a = 3 and b = 5Y                 | 使用到a，b                       |
+   | where a = 3 and b = 5 and c = 4Y       | 使用到a,b,c                      |
+   | where b = 3                            | 没有使用                         |
+   | where b = 3 and c = 4                  | 没有                             |
+   | where c = 4N                           | 没有使用                         |
+   | where a = 3 and c = 5                  | 使用到a，  但是C不可以，中间断了 |
+   | where a = 3 and b > 4 and c = 7        | 使用到a和b， c在范围之后，断了   |
+   | where a = 3 and b like 'kk%' and c = 4 | 同上                             |
 
 
 
