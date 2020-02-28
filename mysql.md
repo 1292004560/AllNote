@@ -1628,6 +1628,7 @@ CALL test_randstr_insert(10)$
      7. **select tables optimized away** ：在没有GROUPBY子句的情况下，基于索引优化MIN/MAX操作或者对于MyISAM存储引擎优化COUNT(*)操作，不必等到执行阶段再进行计算，查询执行计划生成的阶段即完成优化。
      8. **distinct** ：优化distinct操作，在找到第一匹配的元组后即停止找同样值的动作
 
+***
 
 ###### 索引优化
 
@@ -1883,9 +1884,244 @@ CALL test_randstr_insert(10)$
    | where a = 3 and b > 4 and c = 7        | 使用到a和b， c在范围之后，断了   |
    | where a = 3 and b like 'kk%' and c = 4 | 同上                             |
 
+****
+
+##### Show Profile
+
+###### 是什么
+
+* 是mysql提供可以用来分析当前会话中语句执行的资源消耗情况。可以用于SQL的调优的测量
+* 默认情况下，参数处于关闭状态，并保存最近15次的运行结果
+
+###### 分析步骤
+
+1. 是否支持，看看当前的mysql版本是否支持 **Show  variables like 'profiling';** 
+2. 开启功能，默认是关闭，使用前需要开启
+3. 运行SQL
+4. 查看结果，show profiles;
+5. 诊断SQL，show profile cpu,block io for query 上一步前面的问题SQL数字号码;
+
+###### 日常开发需要注意的结论
+
+1. converting HEAP to MyISAM 查询结果太大，内存都不够用了往磁盘上搬了。
+2. create tmp table 创建临时表，这个要注意
+3. Copying to tmp table on disk   把内存临时表复制到磁盘
+
+###### 一般性建议
+
+1. 在选择组合索引的时候，当前Query中过滤性最好的字段在索引字段顺序中，位置越靠前越好。
+2. 在选择组合索引的时候，尽量选择可以能够包含当前query中的where字句中更多字段的索引。
+3. 尽可能通过分析统计信息和调整query的写法来达到选择合适索引的目的。
+4. 少用Hint强制索引。
+
+##### 查询优化
+
+* 永远小表驱动大表类似嵌套循环Nested Loop
+
+##### order by关键字优化
+
+1. ORDER BY子句，尽量使用Index方式排序,避免使用FileSort方式排序
+   1. MySQL支持二种方式的排序，FileSort和Index，Index效率高.
+      它指MySQL扫描索引本身完成排序。FileSort方式效率较低。
+   2. ORDER BY满足两情况，会使用Index方式排序:
+      1. ORDER BY 语句使用索引最左前列
+      2. 使用Where子句与Order BY子句条件列组合满足索引最左前列
+2. 尽可能在索引列上完成排序操作，遵照索引建的最佳左前缀
+3. 如果不在索引列上，filesort有两种算法：**mysql就要启动双路排序和单路排序**
+   1. **双路排序** : MySQL 4.1之前是使用双路排序,字面意思就是两次扫描磁盘，最终得到数据，
+      读取行指针和orderby列，对他们进行排序，然后扫描已经排序好的列表，按照列表中的值重新从列表中读取对应的数据输出
+      1. 从磁盘取排序字段，在buffer进行排序，再从磁盘取其他字段。
+      2. 取一批数据，要对磁盘进行了两次扫描，众所周知，I\O是很耗时的，所以在mysql4.1之后，出现了第二种改进的算法，就是单路排序。
+   2. **单路排序** : 从磁盘读取查询需要的所有列，按照order by列在buffer对它们进行排序，然后扫描排序后的列表进行输出，它的效率更快一些，避免了第二次读取数据。并且把随机IO变成了顺序IO,但是它会使用更多的空间，因为它把每一行都保存在内存中了。
+   3. 由于单路是后出的，总体而言好过双路 **但是用单路有问题** 
+      1. 在sort_buffer中，方法B比方法A要多占用很多空间，因为方法B是把所有字段都取出, 所以有可能取出的数据的总大小超出了sort_buffer的容量，导致每次只能取sort_buffer容量大小的数据，进行排序（创建tmp文件，多路合并），排完再取取sort_buffer容量大小，再排……从而多次I/O。本来想省一次I/O操作，反而导致了大量的I/O操作，反而得不偿失。
+4. 优化策略
+   1. 增大max_length_for_sort_data参数的设置
+   2. 增大sort_buffer_size参数的设置
+   3. Why  提高Order By的速度
+      * Order by时select * 是一个大忌只Query需要的字段， 这点非常重要。在这里的影响是：
+        1. 当Query的字段大小总和小于max_length_for_sort_data 而且排序字段不是 TEXT|BLOB 类型时，会用改进后的算法——单路排序， 否则用老算法——多路排序。
+        2. 两种算法的数据都有可能超出sort_buffer的容量，超出之后，会创建tmp文件进行合并排序，导致多次I/O，但是用单路排序算法的风险会更大一些,所以要提高sort_buffer_size。
+      *  尝试提高 sort_buffer_size
+        1. 不管用哪种算法，提高这个参数都会提高效率，当然，要根据系统的能力去提高，因为这个参数是针对每个进程的
+      * 尝试提高 max_length_for_sort_data
+        1. 提高这个参数， 会增加用改进算法的概率。但是如果设的太高，数据总容量超出sort_buffer_size的概率就增大，明显症状是高的磁盘I/O活动和低的处理器使用率. 
+
+****
+
+##### GROUP BY关键字优化
+
+1. group by实质是先排序后进行分组，遵照索引建的最佳左前缀
+2. 当无法使用索引列，增大max_length_for_sort_data参数的设置+增大sort_buffer_size参数的设置
+3. where高于having，能写在where限定的条件就不要去having限定了。
+
+****
 
 
 
+##### MySql锁机制
+
+1. 概述
+
+   1. **定义**  锁是计算机协调多个进程或线程并发访问某一资源的机制。
+
+        在数据库中，除传统的计算资源（如CPU、RAM、I/O等）的争用以外，数据也是一种供许多用户共享的资源。如何保证数据并发访问的一致性、有效性是所有数据库必须解决的一个问题，锁冲突也是影响数据库并发访问性能的一个重要因素。从这个角度来说，锁对数据库而言显得尤其重要，也更加复杂。
+
+   2. **锁的分类** 
+
+      1. 从对数据操作的类型（读\写）分
+      2. 从对数据操作的粒度分
+         1. 表锁
+         2. 行锁
+
+   3. **三锁** 
+
+      1. 表锁(偏读)
+
+         1. **特点** ： 偏向MyISAM存储引擎，开销小，加锁快；无死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。
+
+         2. 案例分析
+
+            ```mysql
+            MyISAM在执行查询语句（SELECT）前，会自动给涉及的所有表加读锁，在执行增删改操作前，会自动给涉及的表加写锁。 
+            MySQL的表级锁有两种模式：
+             表共享读锁（Table Read Lock）
+             表独占写锁（Table Write Lock）
+            
+            结论：
+             结合上表，所以对MyISAM表进行操作，会有以下情况： 
+              1、对MyISAM表的读操作（加读锁），不会阻塞其他进程对同一表的读请求，但会阻塞对同一表的写请求。只有当读锁释放后，才会执行其它进程的写操作。 
+              2、对MyISAM表的写操作（加写锁），会阻塞其他进程对同一表的读和写操作，只有当写锁释放后，才会执行其它进程的读写操作。
+             # 简而言之，就是读锁会阻塞写，但是不会堵塞读。而写锁则会把读和写都堵塞。
+            ```
+
+         3. **表锁分析**
+
+            ```mysql
+            【看看哪些表被加锁了】
+            mysql>show open tables;
+            
+            【如何分析表锁定】
+            可以通过检查table_locks_waited和table_locks_immediate状态变量来分析系统上的表锁定：
+            SQL：show status like 'table%';
+            
+            这里有两个状态变量记录MySQL内部表级锁定的情况，两个变量说明如下：
+            Table_locks_immediate：产生表级锁定的次数，表示可以立即获取锁的查询次数，每立即获取锁值加1 ；
+            Table_locks_waited：出现表级锁定争用而发生等待的次数(不能立即获取锁的次数，每等待一次锁值加1)，此值高则说明存在着较严重的表级锁争用情况；
+            
+            
+            此外，Myisam的读写锁调度是写优先，这也是myisam不适合做写为主表的引擎。因为写锁后，其他线程不能做任何操作，大量的更新会使查询很难得到锁，从而造成永远阻塞
+            ```
+
+      2. 行锁(偏写)
+
+         1. **特点** :
+
+            1. 偏向InnoDB存储引擎，开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。
+            2. InnoDB与MyISAM的最大不同有两点：一是支持事务（TRANSACTION）；二是采用了行级锁
+
+         2.  Innodb存储引擎由于实现了行级锁定，虽然在锁定机制的实现方面所带来的性能损耗可能比表级锁定会要更高一些，但是在整体并发处理能力方面要远远优于MyISAM的表级锁定的。当系统并发量较高的时候，Innodb的整体性能和MyISAM相比就会有比较明显的优势了。
+
+
+              但是，Innodb的行级锁定同样也有其脆弱的一面，当我们使用不当的时候，可能会让Innodb的整体性能表现不仅不能比MyISAM高，甚至可能会更差。
+
+         3. **行锁支持事务**
+
+         4. **优化建议**
+
+            1. 尽可能让所有数据检索都通过索引来完成，避免无索引行锁升级为表锁。
+            2. 合理设计索引，尽量缩小锁的范围
+            3. 尽可能较少检索条件，避免间隙锁
+            4. 尽量控制事务大小，减少锁定资源量和时间长度
+            5. 尽可能低级别事务隔离
+
+      3. 页锁
+
+         1. 开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。
+
+***
+
+##### 主从复制
+
+###### 复制的基本原理
+
+1. slave会从master读取binlog来进行数据同步
+2. 步骤
+   1.  master将改变记录到二进制日志（binary log）。这些记录过程叫做二进制日志事件，binary log events；
+   2. slave将master的binary log events拷贝到它的中继日志（relay log）；
+   3. slave重做中继日志中的事件，将改变应用到自己的数据库中。 MySQL复制是异步的且串行化的
+
+###### 复制的基本原则
+
+1. 每个slave只有一个master
+2. 每个slave只能有一个唯一的服务器ID
+3. 每个master可以有多个salve
+
+###### 复制的最大问题
+
+1. 延时
+2. mysql版本一致且后台以服务运行
+
+###### 一主一从常见配置
+
+**主机修改my.ini配置文件主从都配置在[mysqld]结点下，都是小写**
+
+1. [必须]主服务器唯一ID **server-id=1**
+2. [必须]启用二进制日志
+   1. log-bin=自己本地的路径/mysqlbin
+   2. log-bin=D:/devSoft/MySQLServer5.5/data/mysqlbin
+3. [可选]启用错误日志
+   1. log-err=自己本地的路径/mysqlerr
+   2. log-err=D:/devSoft/MySQLServer5.5/data/mysqlerr
+4. [可选]根目录
+   1. basedir="自己本地路径"
+   2. basedir="D:/devSoft/MySQLServer5.5/"
+5. [可选]临时目录
+   1. tmpdir="自己本地路径"
+   2. tmpdir="D:/devSoft/MySQLServer5.5/"
+6. [可选]数据目录
+   1. datadir="自己本地路径/Data/"
+   2. datadir="D:/devSoft/MySQLServer5.5/Data/"
+7. **read-only=0** 
+   1. 主机，读写都可以
+8. [可选]设置需要复制的数据库
+   1. binlog-do-db=需要复制的主数据库名字
+9. [可选]设置不要复制的数据库
+   1. binlog-ignore-db=mysql
+
+***
+
+**从机修改my.cnf配置文件**
+
+1. [必须]从服务器唯一ID
+2. [可选]启用二进制日志
+3. 因修改过配置文件，请主机+从机都重启后台mysql服务
+
+**因修改过配置文件，请主机+从机都重启后台mysql服务**
+
+主机从机都关闭防火墙
+
+###### 在Windows主机上建立帐户并授权slave
+
+1. **GRANT REPLICATION SLAVE ON *.* TO 'zhangsan'@'从机器数据库IP' IDENTIFIED BY '123456';**
+2. **flush privileges;**
+3. 查询master的状态
+   1. show master status;
+   2. **记录下File和Position的值**
+4. 执行完此步骤后不要再操作主服务器MYSQL，防止主服务器状态值变化
+
+###### 在Linux从机上配置需要复制的主机
+
+1. **CHANGE MASTER TO MASTER_HOST='主机IP',MASTER_USER='zhangsan',MASTER_PASSWORD='123456',MASTER_LOG_FILE='File名字',MASTER_LOG_POS=Position数字;**
+2. 启动从服务器复制功能
+   1. **start slave;**
+3. **show slave status\G** 有下面两个参数说明配置成功
+   1. **Slave_IO_Running: Yes**
+   2. **Slave_SQL_Running: Yes**
+4. 主机新建库、新建表、insert记录，从机复制
+5. 如何停止从服务复制功能 ： **stop slave;**
+
+***
 
 
 
