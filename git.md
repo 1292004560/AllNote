@@ -6,11 +6,12 @@
 2. git add  test.txt 将已修改的文件提交文件到暂存区
 3. git status 查看工作区的状态
 4. git rm --cached   test.txt 将暂存区的内容删除
-5. git checkout -- test.txt 丢弃上次的修改**此命令谨慎使用** 
+5. git checkout -- test.txt 丢弃 **工作区** 上次的修改**此命令谨慎使用** 
 6. git mv test.txt test2.txt 重命名文件
 7. git commit --amend -m '再次修正'  修正上次提交的信息
 8. git add . 将所有文件提交到暂存区
 9. git commit -am ""  添加当前目录下的所有文件并提交
+10. git blame test.txt  查看文件的所有修改信息
 
 ##### user.name和user.mail
 
@@ -69,6 +70,7 @@
 ##### git 分支
 
 * **git branch** 查看版本库的分支
+* **git branch -m master  master2** 改变分支的名字
 * **git  branch  分支名** 创建分支
 * **git checkout  要切换的分支名**  切换分支
 * **git  branch -d 分支名** 删除已合并的分支
@@ -92,4 +94,53 @@
   * **git reset --hard commit_id**
 * 返回到某一版本
   * git reflog  **记录的是操作日志**
+
+##### git checkout -- test.txt
+
+* 作用是：丢弃掉相对于暂存区中最后一次添加的文件所做的变更
+
+##### git reset HEAD  test.txt
+
+* 作用是：将之前添加到暂存区的内容从暂存区移到工作区
+
+##### 保存工作现场
+
+* 保存现场
+  * **git stash**
+  * **git stash  list** 查看所有保存现场
+* 恢复现场
+  * **git stash apply** (stash 内容不删除，需要通过 **git stash drop stash@{0} 手动删除**)
+  * **git stash pop** (恢复工作现场的同时也将stash内容删除)
+  * **git stash apply stash@{0}** 恢复哪一个工作现场
+
+##### Git标签
+
+* 新建标签，标签有两种：轻量级标签( lighweight) 与带有附注标签(annotated)
+* 创建一个轻量级标签
+  * **git tag v1.0.1**
+* 创建一个带有附注的标签
+  * **git tag -a v1.0.0.2  -m 'release vesion'**
+* 删除标签
+  * **git  tag -d  tag_name**
+* 查看标签
+  * **git tag**
+  * **git  tag -l 'v*'** 查找带*开头的标签
+
+##### git diff
+
+* **git diff**
+  * 比较的是暂存区与工作区文件之间的差别
+* **git  diff HEAD **
+  * 比较的是最新的提交与工作区之间的差别
+  * **HEAD** 可以替换成特定的 **commit_id**
+* **git diff --cached**
+  * 比较的是最新的提交与暂存区之间的区别
+
+##### 远程协作
+
+1. **git  remote  show** 显示所有的远程仓库
+2. **git remote  show origin** 显示origin仓库的详细信息
+3. **git remote add orgin 地址** 
+
+
 
