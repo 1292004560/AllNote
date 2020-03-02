@@ -21,6 +21,7 @@
    3. 针对特定项目的 ，.git/config文件夹中 **git  config --local**
 2. **git config user.name**  查看用户名
 3. **git config user.emal**  查看邮箱  
+4. **git config --global alias.别名 要替代的命令**  git 命令别名
 
 ##### 终端光标操作
 
@@ -141,6 +142,40 @@
 1. **git  remote  show** 显示所有的远程仓库
 2. **git remote  show origin** 显示origin仓库的详细信息
 3. **git remote add orgin 地址** 
+4. **git branch -a** 查看本地和远程分支
+5. **git branch -av** 将最后一次提交的信息显示出来
+6. **git  clone  地址  mygit ** 将远程仓库clone到本地的mygit仓库
+7. **git  pull  ==  git fetch  +  git merge**
+
+##### 关于Git分支的最佳实践
+
+1. 通常来说，Git分支会有如下几种
+   1. master分支
+   2. test分支
+   3. develop分支
+   4. hotfix分支
+
+##### 将本地分支推送到远程并在远程创建分支
+
+1. **git  push  -u  origin  test**
+2. **git  push  --set-upstream  origin  develop **
+3. **git  push  --set-upstream  origin  develop   src:dest**
+
+##### 创建本地分支并追踪远程分支
+
+1. **git  checkout  -b  test  origin/test**
+2. **git  checkout  --track  origin/test**
+
+##### git  push完整写法
+
+* **git  push  origin  src:dest**
+
+##### 删除远程分支
+
+1. **git  push  origin   :  dest**
+2. **git  push  --delete  develop**
+
+
 
 
 
