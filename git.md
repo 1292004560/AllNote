@@ -117,15 +117,39 @@
 ##### Git标签
 
 * 新建标签，标签有两种：轻量级标签( lighweight) 与带有附注标签(annotated)
+
 * 创建一个轻量级标签
+
   * **git tag v1.0.1**
+
 * 创建一个带有附注的标签
+
   * **git tag -a v1.0.0.2  -m 'release vesion'**
+
 * 删除标签
+
   * **git  tag -d  tag_name**
+
 * 查看标签
   * **git tag**
   * **git  tag -l 'v*'** 查找带*开头的标签
+
+* **git  push  origin v1.0** 推送标签到远程  **可以推送多个**
+
+* **git  push origin  --tags** 将本地未推送的标签全部推送到远程
+
+* **git  push origin  : refs/tags/v1.0** 将远程 v1.0删除
+
+* **git  push origin  --delete  tag v5.0**  将远程 v5.0删除
+
+* 完整写法
+
+  * **git  push origin refs/tags/v7.0:refs/tags/v7.0**
+
+* 从远程只拉取标签
+
+  * **git  fetch  origin tag v7.0**
+
 
 ##### git diff
 
@@ -166,14 +190,60 @@
 1. **git  checkout  -b  test  origin/test**
 2. **git  checkout  --track  origin/test**
 
-##### git  push完整写法
+##### git  push 和git pull完整写法
 
-* **git  push  origin  src:dest**
+* **git  push  origin  srcBranch:destBranch**
+* **git  pull  origin  srcBranch : destBranch**
 
 ##### 删除远程分支
 
 1. **git  push  origin   :  dest**
 2. **git  push  --delete  develop**
+
+##### HEAD标记
+
+* HHEAD文件是一个指向你当前分支的引用标识符，该文件并不包含SHA-1只，而是一个指向另外一个应用的指针
+* 当执行git  commit命令时，git 会创建一个commit对象，并且将这个对象的parent指针设置为HEAD所指向的引用的SHA-1值
+* 我们对于HEAD的任何操作，都会被 **git  reflog** 完整记录下来
+* 实际上，我们可以通过git底层命令 **symbolic-ref** 来实现对HEAD文件内容修改
+
+##### refspec
+
+1. 在缺省的情况下，refspec会被  **git remote add** 命令所自动生成，Git 会获取远端上 refs/heads下的所有引用，并将它们写到本地的refs/remote/origin目录下，所以，如果原端上有一个master分支，你就可以通过下面几种方式访问他们的历史记录：
+   1. **git log  origin/master**
+   2. **git  log  remotes/origin/master**
+   3.  **git log refs/remotes/origin/mster**
+
+##### Git    gc
+
+1. **git  gc** 会把 refs目录下的文件打包成 **packed-refs** 文件
+2. 一般不会使用
+
+##### Git裸库与submodule
+
+1. 创建裸库
+   1. **git  init  --bare**
+2. **git  submodule  add 远程地址  本地目录名**
+   1. 作用：为项目添加依赖的项目
+   2. 远程项目发生变化 直接进入子模块 执行  **git pull**
+   3. **git  submodule  foreach  git  pull**  更新所有子模块
+3. clone一个带有子模块的项目时有有三步
+   1. **git  clone**
+   2. **git  submodule  init**
+   3. **git  submodule  update  --recursive**
+4. clone一个带有子模块的第二种操作
+   1. **git  clone  地址  --recursive**
+
+##### git subtree
+
+1. 先添加远程库 **git  remote  add  subtree-origin  地址**
+2. 将远程代码放在subtree目录下 从 subtree-origin  的master分支
+   1. **git  subtree  add  --prefix=subtree   subtree-origin  master **
+3. 更新
+   1. **git subtree pull --prefix=subtree  subtree-origin  master  --squash**
+4. 
+
+
 
 
 
