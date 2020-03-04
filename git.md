@@ -241,7 +241,27 @@
    1. **git  subtree  add  --prefix=subtree   subtree-origin  master **
 3. 更新
    1. **git subtree pull --prefix=subtree  subtree-origin  master  --squash**
-4. 
+      1. **--squash的意义**
+      2. 会把几个提交合并成一个提交
+      3. 防止子仓库污染主仓库
+      4. 这个参数要使用全都使用，要不使用全都不使用
+
+##### git cherry-pick
+
+* 作用：将一个分支上的修改作用到另一个分支上
+
+##### git  rebase
+
+1. rebase 的功能类似merge
+2. rebase过程中也会出现冲突
+3. 解决冲突后，使用 **git add** 添加，然后执行
+   1. **git  rebase  --continue**
+4. 接下来Git 会继续应用余下的补丁
+5. 任何适合都可以通过如下命令终止rebase，分支会恢复到rebase开始前的状态
+   1. **git  rebase -abort**
+6. 不要对master分支执行rebase，否则会引起很多问题
+7. 一般来说，执行rebase的分支都是自己的本地分支，没有推送到远程版本库
+8. 
 
 
 
