@@ -406,6 +406,230 @@
   * 进程也是树形结构
   * 进程和权限有这密不可分的关系
 
+##### 进程优先级的调整
 
+* 调整优先级
+  * **nice**  范围从 -20 到 19 ，值越小优先级越高，抢占资源越多
+    * **nice   -n  优先级数字    程序**
+  * **renice**  重新设置优先级
+    * **renice  -n   优先级数字   进程id** 
+* 进程作业控制
+  * **jobs**
+    * 将后台进程调回到前台
+    * **jobs**
+    * **fg   jobs后的id**
+  * & 符号
+    * 让进程在后台运行   **程序  &**
+* **ctrl  + z**  将程序调入后台 停止
+  * **bg    jobs后的id** 重新运行
 
+##### 进程通信
 
+* 信号是进程间通信方式之一，典型用法是 ：终端用户输入中断命令，通过信号机制停止一个程序的运行
+* 使用信号的常用快捷键和命令
+  * **kill  -l**
+    * **SIGINT** 通知前台进程终止进程  **ctrl + c**
+    * **SIGKILL**   立即停止程序，不呢个被阻塞和处理 **kill -9  pid**
+
+##### 守护进程
+
+* 使用  **nohup** 与 **&**  符号配合运行一个命令(不是守护进程)
+  * **nohup** 命令使进程忽略 hangup (挂起) 信号
+* 使用 **screen** 命令
+  * **screen**  进入 **screen** 环境
+  * **ctrl  + a d ** 退出(detached) screen 环境
+  * **screen  -ls** 查看 **screen** 会话
+  * **screen  -r   seesionid**  恢复会话    
+
+##### 系统日志
+
+* **/var/log/**
+
+  * 系统的常规日志
+    * **message**
+  * 内核日志
+    * **dmesg**
+  * 系统安全日志
+    * **secure**
+  * 计划任务日志
+    * **cron**
+
+##### 服务管理工具
+
+* 服务(提供常见功能的守护进程)集中管理工具
+  * **service**
+    * 启动脚本目录  **/etc/init.d/**
+  * **systemctl**
+    * 启动脚本目录  **/usr/lib/systemd/system/**
+
+###### init运行级别(cat   /etc/inittab)
+
+0. 关机
+1. 服务器出问题（单用户状态）
+2. 无NFS的多用户模式
+3. 完整的多用户模式
+4. 无保留无使用
+5. 桌面模式
+6. 重新启动
+   * 设置运行级别（例：init 0）
+
+###### systemctl 常见操作
+
+* systemctl 常见操作
+  * **systemctl  start | stop  | restart | reload | enable | disable 服务名称**
+  * 软件包安装的服务单元 **/usr/lib/systemd/system/**
+
+#### SELinux简介
+
+* MAC(强制访问控制)与 DAC (自主访问控制)
+* 查看 SElinux 的命令
+  * **getenforce**
+  * **/usr/sbin/sestatus**
+  * **ps -Z  and  ls -Z  and  id -Z**
+* 关闭 SELinux
+  * **setenforce  0**
+  * **/etc/selinux/sysconfig**
+
+#### 内存和磁盘管理
+
+* 内存和磁盘使用率查看
+* ext4 文件系统
+* 磁盘配额的使用
+* 磁盘的分求与挂载
+* 交换分区(虚拟内存)的查看与创建
+* 软件RAID的使用
+* 逻辑卷管理
+* 系统中华状态查看
+
+##### 内存使用率查看
+
+* 常用命令介绍
+  * **free**
+  * **top**
+
+##### 磁盘使用率查看
+
+* **fdisk**
+  * **fdisk  -l**
+* **df**
+  * **df -h**
+* **du**
+* **ls  与 du  的区别**
+
+#### 常见文件系统
+
+* linux 支持多种文件系统，常见有
+  * **ext4**
+  * **xfs**
+  * **NTFS** (需要安装额外软件)
+
+##### ext4文件系统基本结构
+
+* 超级块
+* 超级副本
+* i 节点  (inode)
+* 数据块 (datablock)
+
+##### 磁盘分区与挂载
+
+* 常用命令
+  * **fdisk**
+  * **mkfs**
+  * **parted**
+  * **mount**
+* 常见配置文件
+  * **/etc/fstab**
+
+##### 用户磁盘配额
+
+* xfs 文件系统的用户磁盘配额 **quota**
+* **mkdir  /mnt/disk1**
+* **mount  -o  uquta | g quota /dev/sdb1   /mnt/ disk1**
+* **chmod  1777  /mnt /disk1**
+* **xfs_quota  -x  -c 'report  -ugibh'    /mnt/disk1**
+* **xfs_quota  -x  -c  'limit  -u  isoft = 5 ihard = 10   user1 '   /mnt/disk1**
+
+##### 交换分区
+
+* 增加交换分区的大小
+  * **mkswap**
+  * **swapon  | swapoff**
+* 使用文件制作交换分区
+  * **dd  if=/dev/zero  bs=40M  count=1024  of=/swapfile**
+
+##### 逻辑卷管理
+
+#### 系统综合状态查询
+
+* 使用 **sar** 命令查看系统综合状态
+* 使用第三方命令查看网络流量
+  * **yum install  epel-release**
+  * **yum install  iftop**
+  * **iftop  -P**
+
+#### 什么使shell
+
+* shell 是命令解释器，用于解释用户对操作系统的操作
+* shell有很多
+  * **cat  /etc/shells**
+* CentOS 7 默认使用 Shell 是bash
+
+##### Linux的启动过程
+
+* **BIOS - MBR - BootLoader(grub) - kernel - sytemd - 系统初始化 - shell**
+
+#### shell脚本
+
+* UNIX哲学：一条命令只做一件事
+* 为了组合命令和多次执行，使脚本文件来保存需要执行的命令
+* 赋予该文件执行权限(**chmod  + u+rx  filename**)
+
+##### 标准的Shell脚本要包含哪些元素
+
+* **Sha-Bang**
+* 命令
+* “#” 号开头的注释
+* **chmod   u + rx  filename**  可执行权限
+* 执行命令
+  * **bash  ./filename.sh**
+  * **./filename.sh**
+  * **source  ./filename.sh**
+  * **.   filename.sh**
+
+##### 内建命令和外部命令的区别
+
+* 内建命令不需要创建子进程
+* 内建命令对当前的Shell生效
+
+##### 重定向符号
+
+* 一个进程默认会打开标准输入、标准输出、错误输出三个文件描述符
+* 输入重定向 **<**
+  * read  var  < /path/to/a/file
+* 输出重定向符号  **>     >>     2>     &>**
+  * echo  123  > /path/to/a/file
+* 输入和输出重定向组合使用
+  * cat  >  /path/to/a/file   <<  EOF
+  * I  am  $USER
+  * EOF
+
+#### 变量
+
+##### 变量的定义
+
+* 变量的命名规则
+  * 字母、下划线、数字
+  * 不以数字开头
+
+##### 变量赋值
+
+* 为变量赋值的过程，称为变量替换
+  * 变量名=变量值
+    * a=123
+  * 使用let 为变量赋值
+    * **let  a=10+20**
+  * 将命令赋值给变量
+    * **l=ls**
+  * 将命令结果赋值给变量，使用$()或 ``
+    * **let  c=$(ls-l /etc)**
+  * 变量有空格等特殊字符可以包含在 " " 或 ' ' 中 
