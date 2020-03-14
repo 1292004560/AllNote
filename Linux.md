@@ -1025,3 +1025,129 @@
 * NR和FNR行数
 * NF字段数量，最后一个字段内容可以应 $NF取出
 
+###### 关系操作符
+
+* **>    <   <=   >=     ==   !=   ~     !~ **
+
+###### 布尔操作符
+
+* **&&  ||  ！**
+
+##### 条件语句
+
+* 条件语句使用if开头，根据表达式的结果来判断执行哪条语句
+  * **if(表达式)**
+  * **awk语句1**
+  * **[ else**
+  * **awk语句2**
+  * **]**
+* 如果有多个语句需要执行可以使用 { }将多个语句括起来
+
+##### 循环
+
+* while循环
+  * **while(表达式)**
+  * **awk语句**
+* do循环
+  * **do{**
+  * **awk语句**
+  * **} while(表达式)**
+
+###### for循环
+
+* **for(初始值;循环判断条件;累加)**
+  * **awk语句**
+* 影响控制的其他语句
+  * **break**
+  * **continue**
+
+##### 数组
+
+###### 数组的定义
+
+* 数组：一组有某种关联的数据(变量)，通过下标依次访问
+  * 数组名[下标] = 值
+  * 下标可以使用数字也可以使用字符串
+
+###### 数组的遍历
+
+* for(变量  in  数组名)
+  * 使用数组名[变量]的方式依次对每个数组的元素进行操作
+
+###### 删除数组
+
+* delete 数组[下标]
+
+#### 防火墙
+
+##### 防火墙分类
+
+* 软件防火墙和硬件防火墙
+* 包过滤防火墙和应用层防火墙
+  * CentOS6 默认防火枪是 **iptables**
+  * CentOS7 默认防火墙是 **firewallD(底层是netfilter)**
+
+##### iptables的表和链
+
+- 规则表
+  - **filter nat  mangle raw**
+- 规则链
+  - **INPUT  OUTPUT   FORWARD**
+  - **PREROUTING   POSTROUTING**
+
+###### iptables的filter表
+
+* **iptables  -t  filter  命令   规则链   规则**
+  * 命令
+    * **-L**  查看
+    * **-A |  -I**  增加
+    * **-D |  -F  | -P**  删除
+    * **-N  |   -X   |   -E**  修改
+
+###### iptables的nat表
+
+* **iptables  -t  nat  命令  规则链  规则  **
+  * **PREROUTING  目的地址转换**
+  * **POSTROUTING  源地址转换**
+
+###### iptables的配置文件
+
+* **/etc/sysconfig/iptables**
+* CentOS6
+  * **service  iptables  save  | start | stop | restart**
+* CentOS7
+  * **yum install  iptables-services**
+
+##### firewallD服务
+
+* firewallD的特点
+  * 支持区域 “zone” 概念
+  * **firewall-cmd**
+* **systemctl start | stop | enable | disable firewalld.service**
+
+#### SSH服务
+
+###### SSH服务配置文件
+
+* **/etc/ssh/sshd_config**
+  * port  22 默认端口
+  * PermitRootLogin yes  是否允许root登陆
+  * AuthorizedKeysFile.ssh/authorized_keys
+
+###### SSH命令
+
+* **systemctl  status| start | stop | restart | enable| disable  sshd.service**
+* 客户端命令
+  * **ssh  [ -p  端口 ] 用户@远程ip**
+
+###### SSH公钥认证
+
+* 常用命令
+  * **ssh-keygen  -t rsa**
+  * **ssh-copy-id**
+    * **ssh-copy-id -i /root/.ssh/id_rsa.pub  root@192.168.40.131**
+* 产生密钥的地方是客户端
+* scp 远程拷贝命令
+
+
+
