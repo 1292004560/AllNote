@@ -1149,5 +1149,76 @@
 * 产生密钥的地方是客户端
 * scp 远程拷贝命令
 
+#### FTP服务介绍
 
+* FTP协议
+  * 主动模式和被动模式
 
+##### vsftpd服务安装和启动
+
+* **yum install  vsftpd  ftp**
+* **systemctl start vsftp.service**
+* 建议将selinux 改为 permissive
+  * **getsebool  -a | grep  ftpd**
+  * **setsebool  -P \<sebool\> 1 **
+
+###### vsftp服务配置文件
+
+* **/etc/vsftpd/vsftpd.conf   主配置文件**
+* **/etc/vsftpd/ftpusers**
+* **/etc/vsftpd/user_list**
+
+###### 使用虚拟用户进行验证
+
+* **guest_enable=YES**
+* **guest_username=vuser**
+* **user_config_dir=etc/vsftpd/vuserconfig  权限配置**
+* **allow_writeable_chroot=YES**
+* **pam_service_name=vsftpd.vuser**
+
+#### 常见共享服务的区别
+
+* 协议不同
+* 对操作系统的支持程度不同
+* 交互的便利性不同
+
+#### Samba
+
+##### Samba服务安装
+
+* **yum  install  samba**
+
+##### Samba服务配置文件
+
+* **/etc/samba/smb.conf**
+* **[  share ]**
+  * **comment = my share**
+  * **path=/data/share**
+  * **read only =No**
+
+##### Samba用户的设置
+
+* **smbpasswd   命令**
+  * **-a 添加用户**
+  * **-x 删除用户**
+* **pdbedit**
+  * **-L 查看用户**
+
+##### Samba服务启动
+
+* **systemctl start | stop smb.service**
+* **linux 客户端**
+  * **mount  -t cifs  -o username=user1//127.0.0.1/user1/mnt**
+* **Windows客户端**
+  * **资源管理器访问共享**
+  * **映射网络驱动器**
+
+#### NFS服务的配置和启动
+
+* **/etc/export**
+  * **/data/share*(rw,sync,all_squash)**
+* **showmount  -e localhost**
+* 客户端使用挂载方式访问
+  * **mount  -t  nfs localhost:/data/share/ent**
+* 启动NFS
+  * **systemctl  start | stop  nfs.service**
