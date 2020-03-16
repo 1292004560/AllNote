@@ -1222,3 +1222,59 @@
   * **mount  -t  nfs localhost:/data/share/ent**
 * 启动NFS
   * **systemctl  start | stop  nfs.service**
+
+#### Nginx
+
+##### Nginx和Web服务介绍
+
+* Nginx(engine  x)是一个高性能和web和反向代理服务器
+* Nginx 支持HTTP 、HTTPS 和电子邮电代理协议
+* OpenResty 是基于Nginx和Lua实现的Web应用网关，集成了大量的第三方模块
+
+##### OpenResty的下载和安装
+
+* **yum-config -manager  --add-repo  https://openresty.org/package/centos/openresty.repo**
+* **yum install openresty**
+
+###### Openresty的配置文件
+
+* **/usr/local/openresty/nginx/conf/nginx.conf**
+* **service  openresty  start| stop |  restart | reload**
+
+#### 什么是 LNMP
+
+* LAMP(linux + Apache + PHP + MySQL )
+* LNMP( ~~Apache~~ -> Nginx )
+
+##### LNMP环境的搭建
+
+* MySQL安装
+  * 可以使用mariadb替代
+  * **yum  install  mariadb  mariadb-server**
+  * 修改默认编码
+    * **character_set_server=utf8**
+    * **init_connet='SET NAMES utf8'**
+  * **systemctl start  mariadb.server**
+  * **show  variables like '%character_set%'**
+
+#### DNS服务介绍
+
+* **DNS(Domain  Name  System ) 域名系统**
+* **FQDN(Full  Qualified Domain Name)完全限定域名**
+* 域分类 ：根域。顶级域(TLD)
+* 查询方式 : 递归、迭代
+* 解析方式：正向解析，反向解析
+* DNS服务器的类型：缓存域名服务器，主域名服务器、从域名服务器
+
+##### 安装BIND
+
+* /etc/hosts
+* yum install bind  bind-utils
+* systemctl start named.service
+
+#### 什么是NAS
+
+* NAS(Network  Attached  Storage)网络附属存储
+* NAS 支持的稀溶液NFS、CIFS 、FTP
+* 保证数据安全方式  磁盘阵列
+
