@@ -33,3 +33,9 @@ Java虚拟机的启动是通过引导类加载器(**bootstrap class loader**) �
 
 
 
+###  java.lang.OutOfMemoryError
+
+1. 表示堆的内存不够
+2. java虚拟机的堆内存设置不够，可以通过-Xms  -Xmx来调整
+3. 代码中创建了大量的对象，并且长时间不能被垃圾收集器来收集(存在被引用)
+
