@@ -316,3 +316,189 @@ public class StringTest5 {
 
 ```
 
+## Reference
+
+### 强引用(Strong Reference)
+
+最传统的引用定义，是指代码之中普遍存在引用赋值，及类似 Object obj = new Object(); 这种引用关系。**无论任何情况下，只要强引用对象关系还存在，垃圾收集器就永远不会回收掉被引用的对象**.
+
+### 软引用(Soft Reference)
+
+在系统将要发生内存溢出之前，将会把这些对象列入回收范围之中进行二次回收。如果这次回收还没有足够的内存，才会抛出内存溢出的异常。
+
+```java
+//通过 -Xms10m  -Xmx10m 设置内存
+public class SoftReferenceTest {
+    public static class User {
+        public User(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int id;
+        public String name;
+
+        @Override
+        public String toString() {
+            return "[id=" + id + ", name=" + name + "] ";
+        }
+    }
+
+    public static void main(String[] args) {
+        //创建对象，建立软引用
+//        SoftReference<User> userSoftRef = new SoftReference<User>(new User(1, "songhk"));
+        //上面的一行代码，等价于如下的三行代码
+        User u1 = new User(1,"songhk");
+        SoftReference<User> userSoftRef = new SoftReference<User>(u1);
+        u1 = null;//取消强引用
+
+
+        //从软引用中重新获得强引用对象
+        System.out.println(userSoftRef.get());
+
+        System.gc();
+        System.out.println("After GC:");
+//        //垃圾回收之后获得软引用中的对象
+        System.out.println(userSoftRef.get());//由于堆空间内存足够，所有不会回收软引用的可达对象。
+//
+        try {
+            //让系统认为内存资源紧张、不够
+//            byte[] b = new byte[1024 * 1024 * 7];
+            byte[] b = new byte[1024 * 7168 - 635 * 1024];
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
+            //再次从软引用中获取数据
+            System.out.println(userSoftRef.get());//在报OOM之前，垃圾回收器会回收软引用的可达对象。
+        }
+    }
+}
+
+```
+
+
+
+### 弱引用(Weak Reference)
+
+被弱引用关联的对象只能生存到下一次垃圾收集之前。当垃圾收集器工作是，无论空间是否足够，都会回收掉被弱引用关联的对象。
+
+```java
+public class WeakReferenceTest {
+    public static class User {
+        public User(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int id;
+        public String name;
+
+        @Override
+        public String toString() {
+            return "[id=" + id + ", name=" + name + "] ";
+        }
+    }
+
+    public static void main(String[] args) {
+        //构造了弱引用
+        WeakReference<User> userWeakRef = new WeakReference<User>(new User(1, "songhk"));
+        //从弱引用中重新获取对象
+        System.out.println(userWeakRef.get());
+
+        System.gc();
+        // 不管当前内存空间足够与否，都会回收它的内存
+        System.out.println("After GC:");
+        //重新尝试从弱引用中获取对象
+        System.out.println(userWeakRef.get());
+    }
+}
+ // WeakHashMap
+```
+
+
+
+### 虚引用(Phantom Reference)
+
+一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来获得一个对象的实例。为一个对象设置虚引用的**唯一目的就是能在这个对象被垃圾收集器回收时收到一个系统通知**。
+
+虚引用必须和引用队列以前使用。虚引用在创建时必须提供一个引用队列作为参数。当垃圾回收器准备回收一个对象时，虚引用加入引用队列，以通知应用程序对象的回收情况。
+
+**由于虚引用可以跟踪对象的回收时间，因此，也可以将一些资源释放的操作放置在虚引用中执行和记录**。
+
+```java
+public class PhantomReferenceTest {
+    public static PhantomReferenceTest obj;//当前类对象的声明
+    static ReferenceQueue<PhantomReferenceTest> phantomQueue = null;//引用队列
+
+    public static class CheckRefQueue extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                if (phantomQueue != null) {
+                    PhantomReference<PhantomReferenceTest> objt = null;
+                    try {
+                        objt = (PhantomReference<PhantomReferenceTest>) phantomQueue.remove();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if (objt != null) {
+                        System.out.println("追踪垃圾回收过程：PhantomReferenceTest实例被GC了");
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable { //finalize()方法只能被调用一次！
+        super.finalize();
+        System.out.println("调用当前类的finalize()方法");
+        obj = this;
+    }
+
+    public static void main(String[] args) {
+        Thread t = new CheckRefQueue();
+        t.setDaemon(true);//设置为守护线程：当程序中没有非守护线程时，守护线程也就执行结束。
+        t.start();
+
+        phantomQueue = new ReferenceQueue<PhantomReferenceTest>();
+        obj = new PhantomReferenceTest();
+        //构造了 PhantomReferenceTest 对象的虚引用，并指定了引用队列
+        PhantomReference<PhantomReferenceTest> phantomRef = new PhantomReference<PhantomReferenceTest>(obj, phantomQueue);
+
+        try {
+            //不可获取虚引用中的对象
+            System.out.println(phantomRef.get());
+
+            //将强引用去除
+            obj = null;
+            //第一次进行GC,由于对象可复活，GC无法回收该对象
+            System.gc();
+            Thread.sleep(1000);
+            if (obj == null) {
+                System.out.println("obj 是 null");
+            } else {
+                System.out.println("obj 可用");
+            }
+            System.out.println("第 2 次 gc");
+            obj = null;
+            System.gc(); //一旦将obj对象回收，就会将此虚引用存放到引用队列中。
+            Thread.sleep(1000);
+            if (obj == null) {
+                System.out.println("obj 是 null");
+            } else {
+                System.out.println("obj 可用");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 终结器引用(Final Reference)
+
+* 它用以实现对象的finalize()方法，也可以称为终结器引用。
+* 无需手动编码，其内部配合引用队列使用。
+* 在 GC 时，终结器引用入队。由 Finalizer线程通过终结器引用找到被引用对象并调用它的finalize()方法，第二次GC时才能回收被引用对象。 
+
