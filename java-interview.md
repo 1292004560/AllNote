@@ -167,7 +167,7 @@ public class StringIntern {
 
 
 }
-注意 : jdk6 与 jdk7 不同的原因 一个字符串常量池在永久代中 和 一个字符串常量池在堆空间中
+注意 : jdk6 与 jdk7 不同的原因 一个字符串常量池在永久代中  和 一个字符串常量池在堆空间中
  ```
 
 ```java
@@ -177,7 +177,7 @@ public class StringIntern {
         //在上一行代码执行完以后，字符串常量池中并没有"ab"
 
         String s2 = s.intern();//jdk6中：在串池中创建一个字符串"ab"
-                               //jdk8中：串池中没有创建字符串"ab",而是创建一个引用，指向new String("ab")，将此引用返回
+                               //jdk8中：串池中没有创建字符串"ab",而是创建一个引用，指向new 									//		String("ab")，将此引用返回
 
         System.out.println(s2 == "ab");//jdk6:true  jdk8:true
         System.out.println(s == "ab");//jdk6:false  jdk8:true
@@ -501,4 +501,183 @@ public class PhantomReferenceTest {
 * 它用以实现对象的finalize()方法，也可以称为终结器引用。
 * 无需手动编码，其内部配合引用队列使用。
 * 在 GC 时，终结器引用入队。由 Finalizer线程通过终结器引用找到被引用对象并调用它的finalize()方法，第二次GC时才能回收被引用对象。 
+
+ ## 成员变量初始化(非静态)
+
+```java
+/*
+成员变量（非静态的）的赋值过程： ① 默认初始化 - ② 显式初始化 /代码块中初始化 - ③ 构造器中初始化 - ④ 有了对象之后，可以“对象.属性”或"对象.方法"
+ 的方式对成员变量进行赋值。
+ */
+class Father {
+    int x = 10;
+
+    public Father() {
+        this.print();
+        x = 20;
+    }
+    public void print() {
+        System.out.println("Father.x = " + x);
+    }
+}
+
+class Son extends Father {
+    int x = 30;
+//    float x = 30.1F;
+    public Son() {
+        this.print();
+        x = 40;
+    }
+    public void print() {
+        System.out.println("Son.x = " + x);
+    }
+}
+
+public class SonTest {
+    public static void main(String[] args) {
+        Father f = new Son();
+        System.out.println(f.x);
+    }
+}
+
+```
+
+## 原子类之高性能热点商品点赞计数案例
+
+```java
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAccumulator;
+import java.util.concurrent.atomic.LongAdder;
+
+public class AccumulatorCompareDemo {
+
+
+    public static final int _1W = 10000;
+    public static final int THREAD_NUMBER = 50;
+
+    public static void main(String[] args) throws InterruptedException {
+
+        ClickNumber clickNumber = new ClickNumber();
+        long starTime;
+        long endTime;
+
+        CountDownLatch countDownLatch1 = new CountDownLatch(THREAD_NUMBER);
+        CountDownLatch countDownLatch2 = new CountDownLatch(THREAD_NUMBER);
+        CountDownLatch countDownLatch3 = new CountDownLatch(THREAD_NUMBER);
+        CountDownLatch countDownLatch4 = new CountDownLatch(THREAD_NUMBER);
+
+        starTime = System.currentTimeMillis();
+        for (int i = 1;i <= THREAD_NUMBER;i ++ ){
+            new Thread(()->{
+                try {
+                    for (int j = 1; j <= 100 * _1W;j++){
+                        clickNumber.clickBySynchronized();
+                    }
+                }finally {
+                    countDownLatch1.countDown();
+                }
+            },String.valueOf(i)).start();
+        }
+
+        countDownLatch1.await();
+        endTime = System.currentTimeMillis();
+        System.out.println("----costTime: "+ (endTime-starTime) + "毫秒\t clickBySynchronized  " + clickNumber.number);
+
+        System.out.println("=================================================================================================");
+
+        starTime = System.currentTimeMillis();
+        for (int i = 1;i <= THREAD_NUMBER;i ++ ){
+            new Thread(()->{
+                try {
+                    for (int j = 1; j <= 100 * _1W;j++){
+                        clickNumber.clickByAtomicLong();
+                    }
+                }finally {
+                    countDownLatch2.countDown();
+                }
+            },String.valueOf(i)).start();
+        }
+
+        countDownLatch2.await();
+        endTime = System.currentTimeMillis();
+        System.out.println("----costTime: "+ (endTime-starTime) + "毫秒\t clickByAtomicLong  " + clickNumber.atomicLong.get());
+
+        System.out.println("=================================================================================================");
+
+        starTime = System.currentTimeMillis();
+        for (int i = 1;i <= THREAD_NUMBER;i ++ ){
+            new Thread(()->{
+                try {
+                    for (int j = 1; j <= 100 * _1W;j++){
+                        clickNumber.clickByLongAdder();
+                    }
+                }finally {
+                    countDownLatch3.countDown();
+                }
+            },String.valueOf(i)).start();
+        }
+        endTime = System.currentTimeMillis();
+        countDownLatch3.await();
+        System.out.println("----costTime: "+ (endTime-starTime) + "毫秒\t clickByLongAdder  " + clickNumber.longAdder.sum());
+
+
+        System.out.println("=================================================================================================");
+
+        starTime = System.currentTimeMillis();
+        for (int i = 1;i <= THREAD_NUMBER;i ++ ){
+            new Thread(()->{
+                try {
+                    for (int j = 1; j <= 100 * _1W;j++){
+                        clickNumber.clickByLongAccumulator();
+                    }
+                }finally {
+                    countDownLatch4.countDown();
+                }
+            },String.valueOf(i)).start();
+        }
+
+        countDownLatch4.await();
+        endTime = System.currentTimeMillis();
+        System.out.println("----costTime: "+ (endTime-starTime) + "毫秒\t clickByLongAccumulator  " + clickNumber.longAccumulator.get());
+
+
+        System.out.println("=================================================================================================");
+
+
+    }
+}
+
+class ClickNumber {
+    int number = 0;
+
+    public synchronized void clickBySynchronized() {
+        number++;
+    }
+
+    AtomicLong atomicLong = new AtomicLong(0);
+
+    public void clickByAtomicLong() {
+        atomicLong.getAndIncrement();
+    }
+
+
+    LongAdder longAdder = new LongAdder();
+
+    public void clickByLongAdder() {
+        longAdder.increment();
+    }
+
+
+    LongAccumulator longAccumulator = new LongAccumulator(((left, right) -> right + left), 0);
+
+    public void clickByLongAccumulator() {
+        longAccumulator.accumulate(1);
+    }
+
+}
+
+```
+
+
 
