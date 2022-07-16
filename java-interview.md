@@ -553,7 +553,7 @@ import java.util.concurrent.atomic.LongAdder;
 public class AccumulatorCompareDemo {
 
 
-    public static final int _1W = 10000;
+    public static final int _1W = 100000;
     public static final int THREAD_NUMBER = 50;
 
     public static void main(String[] args) throws InterruptedException {
@@ -568,78 +568,79 @@ public class AccumulatorCompareDemo {
         CountDownLatch countDownLatch4 = new CountDownLatch(THREAD_NUMBER);
 
         starTime = System.currentTimeMillis();
-        for (int i = 1;i <= THREAD_NUMBER;i ++ ){
-            new Thread(()->{
+        for (int i = 1; i <= THREAD_NUMBER; i++) {
+            new Thread(() -> {
                 try {
-                    for (int j = 1; j <= 100 * _1W;j++){
+                    for (int j = 1; j <= 100 * _1W; j++) {
                         clickNumber.clickBySynchronized();
                     }
-                }finally {
+                } finally {
                     countDownLatch1.countDown();
                 }
-            },String.valueOf(i)).start();
+            }, String.valueOf(i)).start();
         }
 
         countDownLatch1.await();
         endTime = System.currentTimeMillis();
-        System.out.println("----costTime: "+ (endTime-starTime) + "毫秒\t clickBySynchronized  " + clickNumber.number);
+        System.out.println("----costTime: " + (endTime - starTime) + "毫秒\t clickBySynchronized  " + clickNumber.number);
 
         System.out.println("=================================================================================================");
 
         starTime = System.currentTimeMillis();
-        for (int i = 1;i <= THREAD_NUMBER;i ++ ){
-            new Thread(()->{
+        for (int i = 1; i <= THREAD_NUMBER; i++) {
+            new Thread(() -> {
                 try {
-                    for (int j = 1; j <= 100 * _1W;j++){
+                    for (int j = 1; j <= 100 * _1W; j++) {
                         clickNumber.clickByAtomicLong();
                     }
-                }finally {
+                } finally {
                     countDownLatch2.countDown();
                 }
-            },String.valueOf(i)).start();
+            }, String.valueOf(i)).start();
         }
 
         countDownLatch2.await();
         endTime = System.currentTimeMillis();
-        System.out.println("----costTime: "+ (endTime-starTime) + "毫秒\t clickByAtomicLong  " + clickNumber.atomicLong.get());
+        System.out.println("----costTime: " + (endTime - starTime) + "毫秒\t clickByAtomicLong  " + clickNumber.atomicLong.get());
 
         System.out.println("=================================================================================================");
 
         starTime = System.currentTimeMillis();
-        for (int i = 1;i <= THREAD_NUMBER;i ++ ){
-            new Thread(()->{
+        for (int i = 1; i <= THREAD_NUMBER; i++) {
+            new Thread(() -> {
                 try {
-                    for (int j = 1; j <= 100 * _1W;j++){
+                    for (int j = 1; j <= 100 * _1W; j++) {
                         clickNumber.clickByLongAdder();
                     }
-                }finally {
+                } finally {
                     countDownLatch3.countDown();
                 }
-            },String.valueOf(i)).start();
+            }, String.valueOf(i)).start();
         }
-        endTime = System.currentTimeMillis();
+
         countDownLatch3.await();
-        System.out.println("----costTime: "+ (endTime-starTime) + "毫秒\t clickByLongAdder  " + clickNumber.longAdder.sum());
+        endTime = System.currentTimeMillis();
+        System.out.println("----costTime: " + (endTime - starTime) + "毫秒\t clickByLongAdder  " + clickNumber.longAdder.sum());
 
 
         System.out.println("=================================================================================================");
 
         starTime = System.currentTimeMillis();
-        for (int i = 1;i <= THREAD_NUMBER;i ++ ){
-            new Thread(()->{
+        for (int i = 1; i <= THREAD_NUMBER; i++) {
+            new Thread(() -> {
                 try {
-                    for (int j = 1; j <= 100 * _1W;j++){
+                    for (int j = 1; j <= 100 * _1W; j++) {
                         clickNumber.clickByLongAccumulator();
                     }
-                }finally {
+                } finally {
                     countDownLatch4.countDown();
                 }
-            },String.valueOf(i)).start();
+            }, String.valueOf(i)).start();
         }
 
         countDownLatch4.await();
         endTime = System.currentTimeMillis();
-        System.out.println("----costTime: "+ (endTime-starTime) + "毫秒\t clickByLongAccumulator  " + clickNumber.longAccumulator.get());
+        System.out.println("----costTime: " + (endTime - starTime) + "毫秒\t clickByLongAccumulator  " + clickNumber.longAccumulator.get());
 
 
         System.out.println("=================================================================================================");
@@ -674,6 +675,7 @@ class ClickNumber {
     public void clickByLongAccumulator() {
         longAccumulator.accumulate(1);
     }
+
 
 }
 
