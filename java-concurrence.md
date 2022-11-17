@@ -241,3 +241,55 @@ public class VolatileCachedFactorizer implements Servlet {
 
 
 
+## JAVA并发——客户端加锁机制, 内置锁——面试题
+
+```JAVA
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+@NotThreadSafe 
+public class ListHelp<E> {
+    public List<E> list = Collections.synchronizedList(new ArrayList<E>());
+    
+    // 方法1
+    public synchronized boolean putIfAbsent(E x) { // 这个方法并不是线程安全的，因为当前只获得了ListHelp的锁，并没有获得list                                                     的锁，没有办法保证当前操作的原子性
+        boolean absent = !list.contains(x);
+        if (absent) {
+            list.add(x);
+        }
+        return absent;
+    }
+}
+方法1的同步方法中对list进行先检查后执行的操作（一般都要求先检查后执行的操作是原子性的），但是list对象并不是你这个方法所私有的，看着list是public的，也就是说，list是发布出去的，其他地方可以修改这个list。而在方法1中执行完list.contain(x)后，其他方法可以对list进行添加或者删除元素操作，导致方法1中的absent结果会失效，当你根据失效的absent结果去进行操作时，必然导致数据上不一致的问题。那么为什么这个类是不安全的呢，因为方法1获得了ListHelp的锁并没有获得list的锁，导致，方法1中对list的先检查后执行操作不是满足原子性的。
+    
+    
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+@ThreadSafe 
+public class ListHelp<E> {
+    public List<E> list = Collections.synchronizedList(new ArrayList<E>());
+    // 方法2
+    public  boolean putIfAbsentSafe(E x) { // 这个方法是线程安全的
+        synchronized(list ) {
+            boolean absent = !list.contains(x);
+            if (absent) {
+                list.add(x);
+            }
+            return absent;
+        }
+    }
+}
+```
+
+## 同步容器可能出现的问题
+
+`Vector 、 HashTable 、 Collections.sysnchronizedxx`
+
+**这些同步容器对于一些复合操作，有时可能需要使用额外的客户端加锁(client-side locking) 进行保护**
+
+* `迭代(反复获取元素，直到获得容器的最后一个元素)`
+* `导航(navigation, 根据一定的顺序查找下一个元素)`
+* `条件运算,如"缺少即加入(put-if-absent)"`
+
