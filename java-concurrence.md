@@ -293,3 +293,178 @@ public class ListHelp<E> {
 * `导航(navigation, 根据一定的顺序查找下一个元素)`
 * `条件运算,如"缺少即加入(put-if-absent)"`
 
+## 为计算结果建立高效、可伸缩的高速缓存
+
+1. 第一种实现
+
+```java
+
+//Computable <A, V> 接口描述了一个功能，输入类型是A，输出结果类型是V。ExpensiveFunction实现了Computable，需要花很长时间计算的结果
+public interface Computable <A, V>{
+
+    V compute(A arg) throws InterruptedException;
+}
+
+
+public class ExpensiveFunction  implements Computable<String, BigInteger> {
+    @Override
+    public BigInteger compute(String arg) throws InterruptedException {
+
+        // after deep thought
+        return new BigInteger(arg);
+    }
+}
+
+
+
+public class Memorizer1<A, V> implements Computable<A,V> {
+
+
+    private final Map<A, V> cache = new HashMap<>();
+
+    private final Computable<A, V> c;
+
+
+    public Memorizer1(Computable<A,V> c){
+        this.c = c;
+    }
+
+    @Override
+    public synchronized V compute(A arg) throws InterruptedException {
+
+        V result = cache.get(arg);
+        if (result == null){
+            result = c.compute(arg);
+            cache.put(arg, result);
+        }
+        return result;
+    }
+}
+// 这种实现方式为了保护两个线程不会同步访问HashMap,同步了整个compute方法。这样保证了线程安全，但是带来一个明显的可伸缩性问题。
+```
+
+2. 第二种实现
+
+```java
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class Memoizer2 <A, V> implements Computable<A, V>{
+
+    private final Map<A ,V> cache = new ConcurrentHashMap<>();
+
+
+    private final Computable<A,V> c;
+
+    public Memoizer2(Computable<A, V> c){
+        this.c = c;
+    }
+    @Override
+    public V compute(A arg) throws InterruptedException {
+
+        V result = cache.get(arg);
+        if (result == null){
+            result = c.compute(arg);
+            cache.put(arg, result);
+        }
+        return result;
+    }
+}
+
+// Memoizer2 用ConcurrentHashMap取代HashMap，改进了Memoizer1中这种糟糕的并发行为。因为ConcurrentHashMap是线程安全的，所以不需要在访问底层Map时对它进行同步，这样减少了在Memoizer1中同步compute带来冗长代码。
+// Memoizer2与Memoizer1相比，具有更好的并发性；多线程可以真正的并发使用它。但是作为高速缓存仍然存在缺陷-- 当两个线程同时调用compute方法时，存在一个漏洞，会造成它们计算相同的值。在备忘录这种情况下，这仅仅是效率低而已--高速缓存的目的就是避免重复计算数据。但是对于高速缓存机制更多元化的用途而言，这就不仅仅是效率问题；一个缓存对象仅仅能够被初始化一次的话，这个漏洞会带来安全风险。
+
+// Memoizer2的问题在于，如果一个线程启动了一个开销很大的计算，其他线程并不知道这个线程正在进行中，所以会重复这个计算。
+```
+
+3. 第三种实现
+
+```java
+import java.util.concurrent.*;
+
+public class Memoizer3<A, V> implements Computable<A, V> {
+
+
+    private final ConcurrentHashMap<A, Future<V>> cache = new ConcurrentHashMap<>();
+
+    private final Computable<A, V> c;
+
+    public Memoizer3(Computable<A, V> c) {
+        this.c = c;
+    }
+
+    @Override
+    public V compute(final A arg) throws InterruptedException {
+        while (true) {
+            Future<V> future = cache.get(arg);
+            if (future == null) {
+                Callable<V> eval = () -> c.compute(arg);
+
+                FutureTask<V> futureTask = new FutureTask<>(eval);
+                future = cache.put(arg, futureTask);
+                if (future == null) {
+                    future = futureTask;
+                    futureTask.run();// 调用c.compute发生在这里
+                }
+            }
+            try {
+                return future.get();
+            } catch (CancellationException e) {
+                cache.remove(arg, future);
+            } catch (ExecutionException e) {
+                throw new RuntimeException();
+            }
+        }
+    }
+}
+// FutrueTask代表一个计算的过程，可能已经结束，也可能正在运行中。FutureTask.get只要结果可用，就会将结果返回；否则它就会一直阻塞，直到结果被计算出来，并返回。
+// Memoizer3为缓存的值重新定义可存储Map,用ConcurrenHashMap<A,Future<V>>取代了ConcurrenHashMap<A,V> 。Memoizer3首先检查一个相应的计算是否已经开始，(Memoizer2 与它相反，它会判断计算是否完成)。如果不是，就会创建一个FutureTask,把它注册到Map中,并开始计算；如果是，那么它就会等待正在进行的计算。结果可能很快就会得到，或者正在运算的过程中--但是这对于调用者Future.get来说是透明的。
+// Memoizer3的实现近乎完美：它展现了非常好的并发性(大部分来源于ConcurrentHashMap良好的并发性)，能很快返回已经计算的结果，如果新到的线程请求的是其他线程真在计算的结果,他会耐心地等待。它只存在一个缺陷--两个线程可能同时计算相同的值，它仅仅存在这一个漏洞。这个漏洞远不如Memoizer2的严重，仅仅是因为compute中的if代码块是非原子(nonatomic) 的"检查再运行"序列，仍然存在这种可能：两个线程几乎同时调用compute计算相同的值，双方都没有在缓存中找到期望的值，并开始计算。
+```
+
+4. 完美实现
+
+```java
+import java.util.concurrent.*;
+
+public class Memorizer<A, V> implements Computable<A, V>{
+
+
+    private final ConcurrentHashMap<A, Future<V>> cache = new ConcurrentHashMap<>();
+
+    private final Computable<A, V> c;
+
+    public Memorizer(Computable<A , V> c){
+        this.c = c;
+    }
+
+    @Override
+    public V compute(final  A arg) throws InterruptedException{
+        while (true){
+            Future<V> future = cache.get(arg);
+            if (future == null){
+                Callable<V> eval = () -> c.compute(arg);
+
+                FutureTask<V> futureTask = new FutureTask<>(eval);
+                future = cache.putIfAbsent(arg, futureTask);
+                if (future == null){
+                    future = futureTask;
+                    futureTask.run();
+                }
+            }
+            try {
+                return  future.get();
+            }catch (CancellationException e){
+                cache.remove(arg, future);
+            }catch (ExecutionException e){
+                throw new RuntimeException();
+            }
+        }
+    }
+
+}
+
+// Memorizer 利用ConcurrentHashMap中的原子化的putIfAbsent方法，消除了Memorizer3的隐患。
+// 为了防止缓存污染，如果一个计算被取消或者失败，Memorizer就会把Future从缓存中移除。
+```
+
