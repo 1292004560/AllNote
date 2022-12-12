@@ -65,7 +65,228 @@ public class GulimallCorsConfiguration {
 
 ```
 
+## JSR303校验
 
+```java
+1. 先要在需要校验的字段上加上注解
+	@NotBlank
+	private String name;
+2. 开启校验
+ 	  @RequestMapping("/save")
+    public R save(@Valid @RequestBody BrandEntity brand){
+		brandService.save(brand);
+
+        return R.ok();
+    }
+
+
+
+3.自定义返回错误数据
+  @NotBlank(message = "品牌名不可以为空")
+	private String name;
+	@URL(message = "logo必须是一个合法的url地址")
+	private String logo;
+	@Pattern(regexp = "/^[a-zA-Z]$/" , message = "检索首字母必须是一个字母 ")
+	private String firstLetter;
+
+		@RequestMapping("/save")
+    public R save(@Valid @RequestBody BrandEntity brand, BindingResult result) {
+        // BindingResult是绑定效验的结果  并返回我们想要的样式
+        if (result.hasErrors()) {
+            Map<String, String> map = new HashMap<>();
+            //  1. 获取效验的错误结果
+            result.getFieldErrors().forEach((fieldError -> {
+                // fieldError 获取到错误提示
+                String message = fieldError.getDefaultMessage();
+                // 获取到错误的字段的名字
+                String field = fieldError.getField();
+                map.put(field, message);
+            }));
+
+            return R.error(400,"提交数据不合法").put("data", map);
+
+        } else {
+            brandService.save(brand);
+        }
+        return R.ok();
+    }
+
+
+```
+
+## 统一的异常处理
+
+```java
+@ControllerAdvice+@ExceptionHandler
+系统错误码
+/***
+* 错误码和错误信息定义类
+* 1. 错误码定义规则为 5 为数字
+* 2. 前两位表示业务场景，最后三位表示错误码。例如:100001。10:通用 001:系统未知
+异常
+* 3. 维护错误码后需要维护错误描述，将他们定义为枚举形式
+* * * * * * * * * */
+错误码列表: 10:通用
+001:参数格式校验 11:商品
+12:订单 13: 购物车 14:物流
+  
+```
+
+代码实例
+
+```java
+public enum SystemStatusCode {
+
+    UNKNOWN_EXCEPTION(10000, "系统未知异常"),
+    VALID_EXCEPTION(10001, "参数效验格式失败");
+
+    private int code;
+    private String msg;
+
+    SystemStatusCode(int code, String msg){
+        this.code = code;
+        this.msg = msg;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+}
+
+```
+
+
+
+```java
+package com.zhoushuiping.gulimall.product.exception;
+
+import com.zhoushuiping.common.exception.SystemStatusCode;
+import com.zhoushuiping.common.utils.R;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+
+// 集中处理所有异常
+@Slf4j
+//@ResponseBody
+//@ControllerAdvice(basePackages = "com.zhoushuiping.gulimall.product.controller") // 标柱处理那些类的异常
+@RestControllerAdvice(basePackages = "com.zhoushuiping.gulimall.product.controller")
+public class GulimallExceptionControllerAdvice {
+
+
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    public R handlerValidException(MethodArgumentNotValidException e){
+
+        log.error("数据效验出现问题 {} , 异常类型 {}", e.getMessage(), e.getClass());
+
+        BindingResult bindingResult = e.getBindingResult();
+
+        Map<String, String> errorMap = new HashMap<>();
+        bindingResult.getFieldErrors().forEach(fieldError -> {
+            errorMap.put(fieldError.getField(), fieldError.getDefaultMessage());
+        });
+        return R.error(SystemStatusCode.VALID_EXCEPTION.getCode(), SystemStatusCode.VALID_EXCEPTION.getMsg()).put("data",errorMap);
+    }
+
+    @ExceptionHandler(value = Throwable.class)
+    public R handlerException(Throwable e){
+
+        return R.error(SystemStatusCode.UNKNOWN_EXCEPTION.getCode(),SystemStatusCode.UNKNOWN_EXCEPTION.getMsg());
+    }
+}
+
+```
+
+## 分组校验
+
+```java
+public interface AddGroup {
+}
+
+public interface UpdateGroup {
+}
+```
+
+```java
+@NotNull(message = "修改必须指定品牌id", groups = {UpdateGroup.class})
+@Null(message = "新增不能指定品牌id", groups = {AddGroup.class})
+@TableId
+private Long brandId;
+@NotBlank(message = "品牌名不可以为空", groups = {UpdateGroup.class, AddGroup.class})
+private String name;
+```
+
+ ```java
+ @RequestMapping("/save")
+ public R save(@Validated(value = {AddGroup.class}) @RequestBody BrandEntity brand){
+ 
+         return R.ok();
+ }
+ ```
+
+##  自定义效验
+
+1. 编写一个自定义的校验注解
+
+```java
+ValidationMessages.properties
+com.zhoushuiping.common.valid.ListValue.message=必须提交指定的值0,1
+
+  
+@Constraint(validatedBy = {LIstValueConstraintValidator.class})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.CONSTRUCTOR, ElementType.PARAMETER, ElementType.TYPE_USE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ListValue {
+
+    String message() default "{com.zhoushuiping.common.valid.ListValue.message}";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
+
+    int[] vals ()default {};
+}
+```
+
+2. 编写一个自定义校验器
+
+```java
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+import java.util.HashSet;
+import java.util.Set;
+
+public class LIstValueConstraintValidator implements ConstraintValidator<ListValue,Integer> {
+
+    private Set<Integer> set = new HashSet<>();
+
+    // 判断是否校验成功
+    @Override
+    public boolean isValid(Integer integer, ConstraintValidatorContext constraintValidatorContext) {
+        return set.contains(integer);
+    }
+
+    // 初始化方法
+    @Override
+    public void initialize(ListValue constraintAnnotation) {
+
+        int []vals = constraintAnnotation.vals();
+        for (int i : vals)
+            set.add(i);
+    }
+}
+```
+
+3. 关联自定义校验器和自定义的校验注解
 
 
 
