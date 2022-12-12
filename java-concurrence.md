@@ -613,3 +613,23 @@ public class ProducerConsumerPattern {
 
 ```
 
+## 不可取消的任务在退出前保存中断
+
+```java
+public Task getNextTask(BlockingQueue<Task> queue){
+    boolean interrupted = false;
+    try{
+        while(true){
+            try{
+                return queue.take();
+            }catch(Exception e){
+                interrupted = true;
+            }
+        }finally{
+            if (interrupted)
+                Thread.currentThread().interrupt();
+        }
+    }
+}
+```
+
