@@ -420,7 +420,94 @@ html元素以<span style="color:red;">id属性</span> 来设置选择器，css�
 }
 ```
 
+* 通配符选择器不需要调用，自动就给所有的元素使用样式。
+* 特殊情况才使用，如 清除所有元素标签的内外边距
+
+```css
+*{
+  margin: 0;
+  padding: 0;
+}
+```
+
+ ## CSS字体属性
+
+CSS Fonts(字体)属性用于定义字体系列、大小、粗细、和文字样式(如斜体)。
+
+###  字体系列
+
+**CSS使用 `font-family` 属性定义文本的字体系列**。
+
+```css
+p{font-family: "微软雅黑";}
+
+div{font-family: Arial,"Microsoft Yahei", "微软雅黑";}
+```
+
+* 各种字体之间必须使用英文状态下的都好隔开。
+* 一般情况下，如果有空格隔开的多个单词组成的字体，加引号。
+
+**CSS 使用<span style="color:red;">font-size</span> 属性定义字体大小**。
+
+```css
+p{
+  font-size: 20px;
+}
+```
+
+* 谷歌浏览器默认的文字大小为16px
+* 可以给body指定整个页面文字大小
+
+**CSS 使用<span style="color:red;">font-weight</span> 属性设置文本字体的粗细**。
+
+**CSS 使用<span style="color:red;">font-style</span> 属性设置文本的风格**。
+
+```css
+p{
+  font-style: normal;
+}
+```
+
+| 属性值 | 作用                                                 |
+| ------ | ---------------------------------------------------- |
+| normal | 默认值，浏览器会显示标准的字体样式font-style:normal; |
+| italic | 浏览器会显示斜体的字体样式                           |
+
+<span style="color:red;font-weight:bold;">注意:平时我们很少给文字加协调，反而要给斜体(em,i)改为不倾斜字体</span>
+
+**字体复合属性**
+
+```css
+body{
+  font: font-style font-weight font-size/line-height font-family;
+}
+```
+
+* 使用font属性时，必须按上面预防格式中的顺序书写，不能更换顺序，并且各个属性间以空格隔开。
+* 不需要设置的属性可以省略，但必须保留font-szie 和 font-family属性，否则font属性将不起作用。
+
+**字体属性总结**
+
+| 属性        | 表示     | 注意点                                                       |
+| ----------- | -------- | ------------------------------------------------------------ |
+| font-szie   | 字号     | 通常单位时px像素，一定要跟上单位                             |
+| font-family | 字体     | 实际工作中按照团队约定来写字体                               |
+| font-weight | 字体粗细 | 记住加粗是700或者bold 不加粗是normal或者400 数字不要跟单位   |
+| font-style  | 字体样式 | 记住倾斜是italic 不倾斜是normal工作中常用normal              |
+| font        | 字体连写 | 1.字体连写是有顺序的 不能随意更换位置 2.其中自豪和字体必须同时出现 |
+
+## CSS文本属性
+
+CSS Text(文本)属性可以定义文本的<span style="color:red;">外观</span> ，比如文本颜色、对齐文本、装饰文本、文本缩进、行间距。
+
+**文本颜色**
+
+color属性用于定义文本颜色。
+
+
+
+
+
 
 
  
-
