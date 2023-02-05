@@ -1495,7 +1495,508 @@ s {
 
 浮动之所以不会压住文字，因为浮动产生的目的最初是为了做文字环绕的效果
 
+### 网页布局总结
 
+通过盒子模型，清楚知道大部分html标签是一个盒子。
+
+通过CSS标准流、浮动、定位一起完成布局的，每个都有自己的专门用法。
+
+**标准流**
+
+可以让多个块级元素上下排列，<span style="color:red;">垂直的块级元素显示就用标准流布局。</span>
+
+**浮动**
+
+可以让多个块级元素一行显示或者左右对齐盒子，<span style="color:red;">多个块级盒子水平显示就用浮动布局。</span>
+
+**定位**
+
+定位最大的特点是有层叠的概念，就是可以让多个盒子前后叠压来显示。<span style="color:red;">如果元素自由在某个盒子内移动就可以用定位布局。</span>
+
+## 元素的显示与隐藏
+
+类似网站广告，当我们点击关闭就不见了，但是我们重新刷新界面，会重新出现！
+
+### display属性
+
+**display** 属性用于设置一个元素应如何显示。
+
+* `display:none;`隐藏对象
+* `display:block;`除了转换为块级元素之外，同时还有显示元素的意思
+
+<span style="color:red;">display隐藏元素后，不再占有原来的位置。</span>
+
+后面应用及其官方，搭配JS可以做很多的网页特效。
+
+### visibility 可见性
+
+**visibility** 属性用于指定一个元素应可见还是隐藏。
+
+* `visibility:visible;` 元素可视
+* `visibility:hidden;`元素隐藏
+
+<span style="color:red;">visibility隐藏元素后，继续占有原来的位置。</span>
+
+如果隐藏元素想要原来位置，就用`visibility:hidden`
+
+如果隐藏元素不想要原来位置，就用`display:none`(重点)
+
+### overflow溢出
+
+overflow属性指定了如果内容溢出一个元素的框(超过其指定高度及宽度)时，会发生什么。
+
+| 属性        | 描述                                   |
+| ----------- | -------------------------------------- |
+| **visible** | 不剪切内容也不添加滚动条               |
+| **hidden**  | 不限时超过对象尺寸的内容，超出部分隐藏 |
+| **scroll**  | 不管超出内容否，总是显示滚动条         |
+| **auto**    | 超出自动显示滚动条，不超出不显示滚动条 |
+
+ 一般情况下，我们都不想让溢出的内容显示出来，因为溢出的部分会影响布局。
+
+但是如果有定位的盒子，请慎用overflow:hidden 因为它会隐藏多余的部分。
+
+## 精灵图
+
+一个网页中往往会应用很多小的背景图像作为修饰，当网页的图像过多时，服务器就会频繁地接收和发送请求图片，造成服务器请求压力过大，这将大大降低页面的加载速度。
+
+因此，为了有效地减少服务器接收请求和发送请求的次数，提高页面的加载速度，出现CSS精灵技术。
+
+<span style="color:red;">核心原理 : 将网页中的一些小背景图像整合到一张大图中，这样服务器只需要一次请求就可以了。</span>
+
+
+
+### 精灵图(sprites)的使用
+
+使用精灵图核心 :
+
+1. 精灵技术主要针对于背景图片使用。就是把多个小背景图片整合到一张大图片中。
+2. 这个大图片也称sprites 精灵图 或者 雪碧图。
+3. 移动背景图片位置，此时可以使用`background-position`。
+4. 移动的距离就是这个目标的x和y坐标。注意网页中的坐标有所不同。
+5. 因为一般情况下都是往上往左移动，所以数值是负值。
+6. 使用精灵图的时候需要精确测量，每个小背景图片的大小和位置。
+
+ ## 字体图标
+
+### 字体图标的产生
+
+字体图标使用场景 : 主要用于显示网页中通用、常用的一些小图标。
+
+精灵图是有诸多优点，但是缺点很明显。
+
+1. 图片文件比较大
+2. 图片本身放大和缩小会失真
+3. 一旦图片制作完毕想要更换非常复杂
+
+此时，有种技术的出现很好解决了以上问题，就是<span style="color:red;">就是字体图标iconfont</span>
+
+字体图标可以为前端工程师提供一种方便高效的图标使用方式，展示的是图标，本质属于字体
+
+### 字体图标的优点
+
+* 轻量级 : 一个图标字体要比一系列的图像要小。一旦字体加载了，图标就会马上渲染出来，减少服务器请求
+* 灵活性 : 本质其实是文字，可以很随意的改变颜色、产生阴影、透明效果、旋转等
+* 兼容性 : 几乎支持所有浏览器
+
+注意 : 字体图标不能替代精灵技术，只是对工作中图标部分技术的提升和优化
+
+**总结 : **
+
+1. 如果遇到一些结构和样式比较简单的小图标，就用字体图标
+2. 如果遇到一些结构和样式复杂一点的小图片，就用精灵图
+
+### 字体图标的引入
+
+1. 把下载包的fonts文件夹放在页面根目录下。
+2. 在CSS样式中全局声明字体 : 简单理解把这些字体文件通过CSS引入到我们页面中。一定要注意字体文件路径的问题。
+
+```css
+ /* 字体声明 */
+  @font-face {
+  font-family: 'icomoon';
+  src:  url('fonts/icomoon.eot?p4ssmb');
+  src:  url('fonts/icomoon.eot?p4ssmb#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?p4ssmb') format('truetype'),
+    url('fonts/icomoon.woff?p4ssmb') format('woff'),
+    url('fonts/icomoon.svg?p4ssmb#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+```
+
+3. html标签内添加小图标 ，图标放在span标签里面。
+4. `span {font-family: 'icomoon';}`
+
+### 字体图标的追加
+
+如果工作中，原来的字体图标不够用，我们需要添加新的字体到原来的字体文件中。
+
+把压缩包里面的`selection.json`从新上传，然后选中自己想要新的图标，从新下载压缩包替换原来的文件即可。
+
+## CSS三角
+
+网页中常见一些三角形，使用CSS直接画出来就可以，不必做成图片或者字体图标。
+
+如 :
+
+```css
+div {
+  width: 0;
+  height: 0;
+  line-height: 0;
+  font-size: 0;
+  border: 50px solid transparent;
+  boder-left-color: pink;
+}
+```
+
+
+
+## CSS用户界面样式
+
+### 什么事界面样式
+
+所谓的界面样式，就是更改一些用户操作样式，以便提高更好的用户体验。
+
+### 鼠标样式cursor
+
+```css
+li{cursor: pointer;}
+```
+
+设置或检索在对象上移动的鼠标指针采用何种系统预定义的光标形状。
+
+| 属性值      | 描述      |
+| ----------- | --------- |
+| default     | 小白 默认 |
+| pointer     | 小手      |
+| move        | 移动      |
+| text        | 文本      |
+| not-allowed | 禁止      |
+
+### 轮廓线 outline
+
+给表单添加`outline:0;` 或者`outline:none;` 样式之后，就可以去掉默认的蓝色边框。
+
+```css
+input {outline : none;}
+```
+
+### 防止拖拽文本域 resize
+
+实际开发中，我们文本域右下角是不可以拖拽的。
+
+```css
+textarea{resize : none;}
+```
+
+### vertical-align属性应用
+
+CSS的`vertical-align` 属性使用场景 : 经常用于设置图片或表单(行内块元素)和文字垂直对齐。
+
+官方解释 : 用于设置一个元素的垂直对齐方式，但是它只针对行内元素或者行内块元素有效。
+
+```css
+{vertical-align: baseline | top | middle | bottom}
+```
+
+| 值       | 描述                                   |
+| -------- | -------------------------------------- |
+| baseline | 默认。元素放置在父元素的基线上         |
+| top      | 把元素的顶端与行中最高的顶端对齐       |
+| middle   | 把此元素放置在父元素的中部             |
+| bottom   | 把元素的顶端与行中最低的元素的顶端对齐 |
+
+### 解决图片底部默认空白空隙问题
+
+bug : 图片底侧会有一个空白缝隙，原因是行内块元素会和文字的基线对齐。
+
+主要解决方法有两种 : 
+
+1. 给图片添加 `vertical-align:middle | top | bottom`等。(提倡使用)
+2. 把图片转换为块级元素 `display:block;`
+
+### 溢出的文字省略号显示
+
+1. 单行文本溢出显示省略好哦--必须满足三个条件
+
+```css
+/* 1. 先强制一行内显示文本 */
+white-space: nowrap; (默认 normal 自动换行)
+/* 2.超出部分隐藏 */
+overflow:hidden;
+/* 3. 文字用省略号替代超出部分*/
+text-overflow:ellipsis;
+```
+
+2. 多行文本溢出显示省略号
+
+多行文本溢出显示省略号，有较大的兼容性问题，适合webKit浏览器或移动端(移动端大部分是webkit内核)
+
+```css
+overflow :hidden;
+text-overflow: ellipsis;
+/*弹性伸缩盒子模型显示 */
+display: -webkit-box;
+/*限制在一个块元素显示的文本行数*/
+-webkit-line-clamp:2;
+/*设置或检索伸缩盒对象的子元素的排列方式*/
+-webkit-box-orient: vertical;
+```
+
+更推荐后台人员来做这个效果，因为后台人员可以设置显示多个文字，操作更简单。
+
+## 常见布局技巧
+
+### margin负值运用
+
+1. 让每个盒子margin往左侧移动-1px 正好压住相邻盒子边框
+2. 鼠标经过某个盒子的时候，提高当前盒子的层级即可(如果没有定位，侧加相对定位(保留位置)，如果有定位，则添加z-index)
+
+### 文字围绕浮动元素
+
+巧妙运用浮动元素不会压住文字的特性
+
+### 行内块巧妙运用
+
+### CSS三角强化
+
+```css
+box {
+  width: 0;
+  height: 0;
+  border-top: 50px solid pink;
+  border-right: 50px solid skyblue;
+  border-bottom: 50px solid blue;
+  border-left: 50px solid green;
+}
+----------------------------------
+box{
+  width:0;
+  height:0;
+  border-top:100px solid transparent;
+  border-right:50px solid skyblue;
+  border-bottom: 0 solid blue;
+  border-left:0 solid green;
+}
+
+------------------------------------
+.box {
+       width: 0;
+       height: 0;
+       /* 1.只保留右边的边框有颜色 */
+       border-color: transparent red transparent transparent;
+       /* 2.样式都是solid */
+       border-style: solid;
+       /* 3.上边框宽度要大，右边框 宽度稍小，其余边框为0 */
+        border-width: 100px 50px 0 0;
+}
+```
+
+### CSS初始化
+
+不同浏览器对有些标签的默认值是不同的，为了消除不同浏览器对HTML文本呈现的差异，照顾浏览器的兼容，我们需要对CSS初始化。
+
+**简单理解 : ** CSS初始化是重设浏览器的样式。(也称CSS reset)
+
+每个网页都必须首先进行CSS初始化
+
+这里以京东CSS初始化为例
+
+```css
+/* 把我们所有标签的内外边距清零 */
+* {
+    margin: 0;
+    padding: 0
+}
+/* em 和 i 斜体的文字不倾斜 */
+em,
+i {
+    font-style: normal
+}
+/* 去掉li 的小圆点 */
+li {
+    list-style: none
+}
+
+img {
+    /* border 0 照顾低版本浏览器 如果 图片外面包含了链接会有边框的问题 */
+    border: 0;
+    /* 取消图片底侧有空白缝隙的问题 */
+    vertical-align: middle
+}
+
+button {
+    /* 当我们鼠标经过button 按钮的时候，鼠标变成小手 */
+    cursor: pointer
+}
+
+a {
+    color: #666;
+    text-decoration: none
+}
+
+a:hover {
+    color: #c81623
+}
+
+button,
+input {
+    /* "\5B8B\4F53" 就是宋体的意思 这样浏览器兼容性比较好 */
+    font-family: Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif
+}
+
+body {
+    /* CSS3 抗锯齿形 让文字显示的更加清晰 */
+    -webkit-font-smoothing: antialiased;
+    background-color: #fff;
+    font: 12px/1.5 Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif;
+    color: #666
+}
+
+.hide,
+.none {
+    display: none
+}
+/* 清除浮动 */
+.clearfix:after {
+    visibility: hidden;
+    clear: both;
+    display: block;
+    content: ".";
+    height: 0
+}
+
+.clearfix {
+    *zoom: 1
+}
+```
+
+## HTML5的新特性
+
+HTML5的新增特性主要是针对以前的不足，增加了一些新的标签、新的表单和新的表单属性等。
+
+这些新特性都有兼容性问题，基本是IE9+以上的浏览器才支持，如果不考虑兼容性问题，可以大量使用这些新特性。
+
+### HTML5新增的语义化标签
+
+* `<header>` : 头部标签
+* `<nav>` : 导航标签
+* `<article>` : 内容标签
+* `<section>` : 定义文档某个区域
+* `<aside>` : 侧边栏标签
+* `<footer>` : 尾部标签
+
+<b style="color:red">注意 : </b>
+
+* 这些语义化标准主要针对搜索引擎的
+* 这些新标签页面中可以使用多次
+* 在IE9中，需要把这些元素转换为块级元素
+* 移动端更喜欢使用这些标签
+
+### HTML5新增的视频标签
+
+HTML5在不使用插件的情况下，也可以原生的支持视频格式文件的播放，当然，支持的格式有限的。
+
+1. **视频** `<video>`
+
+当前`<video>` 元素支持三种视频格式 mp4 、webM、 ogg出了mp4其他的格式存在兼容性问题。
+
+```html
+<video src="文件地址" controls="controls"></video>
+```
+
+2. **视频** `<video>` ----常见属性
+
+| 属性     | 值                                       | 描述                                                        |
+| -------- | ---------------------------------------- | ----------------------------------------------------------- |
+| autoplay | autoplay                                 | 视频就绪自动播放(谷歌浏览器需要添加muted来解决自动播放问题) |
+| controls | controls                                 | 向用户显示播放控件                                          |
+| width    | 299px                                    | 设置播放器宽度                                              |
+| height   | 300px                                    | 设置播放器高度                                              |
+| loop     | loop                                     | 播放完是否继续播放该视频，循环播放                          |
+| preload  | auo(预先加载视频)<br/>none(不应加载视频) | 规定是否预加载视频(如果有了autoplay 就忽略该属性)           |
+| src      | url                                      | 视频url地址                                                 |
+| poster   | imgurl                                   | 加载等待的画面图片                                          |
+| muted    | muted                                    | 静音播放                                                    |
+
+## HTML5新增的音频标签
+
+当前 `<audio>` 元素支持三种音频格式mp3、wav、ogg，mp3兼容性好。
+
+```html
+<audio src="文件地址" controls="controls"></audio>
+```
+
+**常见属性 : **
+
+| 属性     | 值       | 描述                                           |
+| -------- | -------- | ---------------------------------------------- |
+| autoplay | autoplay | 如果出现该属性，则音频在就绪后马上播放         |
+| controls | controls | 如果出现该属性，则向用户显示控件，比如播放按钮 |
+| loop     | loop     | 如果出现该属性，则每当音频结束时重新开始播放   |
+| src      | url      | 要播放的音频的url                              |
+
+* 谷歌浏览器把音频和视频播放禁止了
+
+### HTML5新增的input类型
+
+| 属性值          | 说明                        |
+| --------------- | --------------------------- |
+| `type="email"`  | 限制用户输入必须为email类型 |
+| `type="url"`    | 限制用户输入必须为url       |
+| `type="date"`   | 限制用户输入必须为日期类型  |
+| `type="time"`   | 限制用户输入必须为时间类型  |
+| `type="month"`  | 限制用户输入必须为月类型    |
+| `type="week"`   | 限制用户输入必须为周类型    |
+| `type="number"` | 限制用户输入必须为数字类型  |
+| `type="tel"`    | 手机号码                    |
+| `type="search"` | 搜索框                      |
+| `type="color"`  | 生成一个颜色选择表单        |
+
+### HTML5新增的表单属性
+
+| 属性         | 值         | 说明                                                         |
+| ------------ | ---------- | ------------------------------------------------------------ |
+| required     | required   | 表单拥有该属性表示其内容不能为空，必填                       |
+| placeholder  | 提示文本   | 表单的提示信息，存在默认值将不显示                           |
+| autofocus    | auto focus | 自动聚焦属性，页面加载完成自动聚焦到指定表单                 |
+| autocomplete | off/on     | 当用户字段开始键入时，浏览器基于之前键入过的值，应该显示该字段填写的选项。<br/>默认已经打开，如`autocomplete="on"`,关闭`autocomplete="off"` 需要放在表单类，同时添加name属性，同时成功提交 |
+| multiple     | multiple   | 可以多选文件提交                                             |
+
+<b style="color:red">可以通过以下设置方式修改placeholder里面的字体颜色 : </b>
+
+```css
+input::placeholder{
+  color:pink;
+}
+```
+
+## CSS3新特性
+
+ ### CSS3新增选择器
+
+CSS3给我们新增了选择器，可以更加便捷，更加自由的选择目标元素。
+
+1. 属性选择器
+2. 结构伪类选择器
+3. 伪元素选择器
+
+### 属性选择器
+
+属性选择器可以根据元素特定的属性来选择元素。这样就可以不要借助类选择器或id选择器。
+
+| 选择符           | 简介                                   |
+| ---------------- | -------------------------------------- |
+| `E[atrr]`        | 选择具有attr属性的E元素                |
+| `E[attr="val"]`  | 选择具有attr属性且属性值等于val的E元素 |
+| `E[attr^="val"]` | 匹配具有attr属性且值以val开头的E元素   |
+| `E[attr$="val"]` | 匹配具有attr属性且值以val结尾的E元素   |
+| `E[attr*="val"]` | 匹配具有attr属性且值中含有val的E元素   |
+
+<b style="color:red;">注意 : </b> 类选择器、属性选择器、伪类选择器，权重为10。
 
 
 
