@@ -1809,7 +1809,7 @@ box{
 /* 把我们所有标签的内外边距清零 */
 * {
     margin: 0;
-    padding: 0
+    padding: 0;
 }
 /* em 和 i 斜体的文字不倾斜 */
 em,

@@ -81,9 +81,9 @@ uname命令用于打印当前系统相关信息（内核版本号、硬件架构
 
 ![](.\docker-image\002.png)
 
-###  Docker的基本组成
+## Docker的基本组成
 
-####  镜像(image)
+### 镜像(image)
 
 * Docker 镜像（Image）就是一个只读的模板。镜像可以用来创建 Docker 容器，一个镜像可以创建很多容器。
 
@@ -91,7 +91,7 @@ uname命令用于打印当前系统相关信息（内核版本号、硬件架构
 
   相当于容器的“源代码”，**docker镜像文件类似于Java的类模板，而docker容器实例类似于java中new出来的实例对象。**
 
-#### 容器(container)
+### 容器(container)
 
 1. 从面向对象角度
 
@@ -101,7 +101,7 @@ uname命令用于打印当前系统相关信息（内核版本号、硬件架构
 
    可以把容器看做是一个简易版的 Linux 环境（包括root用户权限、进程空间、用户空间和网络空间等）和运行在其中的应用程序。
 
-####  仓库（Repository）
+### 仓库（Repository）
 
 仓库（Repository）是集中存放镜像文件的场所。
 
@@ -119,17 +119,17 @@ Docker公司提供的官方registry被称为Docker Hub，存放各种镜像模�
 
 存放了数量庞大的镜像供用户下载。国内的公开仓库包括阿里云 、网易云等
 
-#### Docker平台架构图解(入门版)
+## Docker平台架构图解(入门版)
 
 ![](./docker-image/003.png)
 
-####  Docker工作原理
+## Docker工作原理
 
 * Docker是一个Client-Server结构的系统，Docker守护进程运行在主机上， 然后通过Socket连接从客户端访问，守护进程从客户端接受命令并管理运行在主机上的容器。 容器，是一个运行时环境，就是我们前面说到的集装箱。可以对比mysql演示对比讲解
 
 ![](./docker-image\004.png)
 
-###  Docker平台架构图解(架构版)
+## Docker平台架构图解(架构版)
 
 #### 整体架构及底层通信原理简述
 
@@ -139,7 +139,7 @@ Docker 是一个 C/S 模式的架构，后端是一个松耦合架构，众多�
 
 ![](./docker-image/006.png)
 
-###	centos7 docker安装步骤
+## centos7 docker安装步骤
 
 #### 确定你是 CentOS7 及以上版本
 
@@ -215,9 +215,7 @@ rm -rf /var/lib/containerd
 
 ![](./docker-image/008.png)
 
-
-
-### Docker常用命令
+## Docker常用命令
 
 #### 帮助启动类命令
 
@@ -459,7 +457,7 @@ images    List images                                   # 列出系统当前镜�
 
 ![](./docker-image/010.png)
 
-### Docker镜像
+## Docker镜像
 
 #### 镜像
 
@@ -470,8 +468,6 @@ images    List images                                   # 列出系统当前镜�
 分层的镜像
 
 以我们的pull为例，在下载的过程中我们可以看到docker的镜像好像是在一层一层的在下载
-
-
 
 #### UnionFS（联合文件系统）
 
@@ -542,7 +538,7 @@ apt-get -y install vim
 docker commit -m="描述" -a="作者" 容器ID  新镜像名字
 ```
 
-### 本地镜像发布到阿里云
+## 本地镜像发布到阿里云
 
 #### 本地镜像发布到阿里云流程
 
@@ -600,7 +596,7 @@ https://promotion.aliyun.com/ntms/act/kubernetes.html
 docker pull registry.cn-hangzhou.aliyuncs.com/atguiguwh/myubuntu:1.1
 ```
 
-### 本地镜像发布到私有库
+## 本地镜像发布到私有库
 
 ##### 本地镜像发布到私有库流程
 
@@ -700,7 +696,7 @@ curl -XGET http://192.168.111.162:5000/v2/_catalog
 docker pull 192.168.111.162:5000/zzyyubuntu:1.2
 ```
 
-### Docker容器数据卷
+## Docker容器数据卷
 
 #### 是什么
 
