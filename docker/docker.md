@@ -308,3 +308,410 @@ centos : centos 镜像。
 要退出终端，直接输入 exit:
 ```
 
+##### 退出容器
+
+```sh
+两种退出方式:
+exit # run进去容器，exit退出，容器停止
+
+ctrl+p+q  # run进去容器，ctrl+p+q退出，容器不停止
+```
+
+##### 启动已停止运行的容器
+
+```sh
+docker start 容器ID或者容器名
+```
+
+##### 重启容器
+
+```sh
+docker restart 容器ID或者容器名
+```
+
+##### 停止容器
+
+```sh
+docker stop 容器ID或者容器名
+```
+
+##### 强制停止容器
+
+```sh
+docker kill 容器ID或容器名
+```
+
+##### 删除已停止的容器
+
+```sh
+docker rm 容器ID
+
+# 一次性删除多个容器实例
+docker rm -f $(docker ps -a -q)
+或
+docker ps -a -q | xargs docker rm
+```
+
+##### 重要
+
+```sh
+# 有镜像才能创建容器，这是根本前提(下载一个Redis6.0.8镜像演示)
+启动守护式容器(后台服务器)
+在大部分的场景下，我们希望 docker 的服务是在后台运行的，
+我们可以过 -d 指定容器的后台运行模式。
+#使用镜像centos:latest以后台模式启动一个容器
+docker run -d centos
+ 
+问题：然后docker ps -a 进行查看, 会发现容器已经退出
+很重要的要说明的一点: Docker容器后台运行,就必须有一个前台进程.
+容器运行的命令如果不是那些一直挂起的命令（比如运行top，tail），就是会自动退出的。
+ 
+这个是docker的机制问题,比如你的web容器,我们以nginx为例，正常情况下,
+我们配置启动服务只需要启动响应的service即可。例如service nginx start
+但是,这样做,nginx为后台进程模式运行,就导致docker前台没有运行的应用,
+这样的容器后台启动后,会立即自杀因为他觉得他没事可做了.
+所以，最佳的解决方案是,将你要运行的程序以前台进程的形式运行，
+常见就是命令行模式，表示我还有交互操作，别中断.
+
+
+前台交互式启动
+docker run -it redis:6.0.8
+
+后台守护式启动
+docker run -d redis:6.0.8
+
+
+问题：为什么 docker run -d redis:6.0.8 后台启动，容器不退出，docker run -d centos 容器退出?
+
+
+---------------------------------------------------------
+
+查看容器日志
+docker logs 容器ID
+
+查看容器内运行的进程 
+docker top 容器ID
+
+查看容器内部细节
+docker inspect 容器ID
+```
+
+###### 进入正在运行的容器并以命令行交互
+
+```sh
+docker exec -it 容器ID bashShell
+
+
+重新进入docker attach 容器ID
+
+上述两个区别:
+attach 直接进入容器启动命令的终端，不会启动新的进程
+用exit退出，会导致容器的停止。
+
+exec 是在容器中打开新的终端，并且可以启动新的进程
+用exit退出，不会导致容器的停止。
+
+
+推荐使用 docker exec 命令，因为退出容器终端，不会导致容器的停止。
+
+进入redis服务
+docker exec -it 容器ID /bin/bash
+docker exec -it 容器ID redis-cli
+
+一般用-d后台启动的程序，再用exec进入对应容器实例
+```
+
+###### 从容器内拷贝文件到主机上
+
+```sh
+容器→主机
+
+docker cp  容器ID:容器内路径 目的主机路径
+```
+
+###### 导入和导出容器
+
+```sh
+export 导出容器的内容留作为一个tar归档文件[对应import命令]
+
+import 从tar包中的内容创建一个新的文件系统再导入为镜像[对应export]
+
+docker export 容器ID > 文件名.tar
+
+cat 文件名.tar | docker import - 镜像用户/镜像名:镜像版本号
+```
+
+##### 常用命令
+
+```sh
+attach    Attach to a running container                 # 当前 shell 下 attach 连接指定运行镜像
+build     Build an image from a Dockerfile              # 通过 Dockerfile 定制镜像
+commit    Create a new image from a container changes   # 提交当前容器为新的镜像
+cp        Copy files/folders from the containers filesystem to the host path   #从容器中拷贝指定文件或者目录到宿主机中
+create    Create a new container                        # 创建一个新的容器，同 run，但不启动容器
+diff      Inspect changes on a container's filesystem   # 查看 docker 容器变化
+events    Get real time events from the server          # 从 docker 服务获取容器实时事件
+exec      Run a command in an existing container        # 在已存在的容器上运行命令
+export    Stream the contents of a container as a tar archive   # 导出容器的内容流作为一个 tar 归档文件[对应 import ]
+history   Show the history of an image                  # 展示一个镜像形成历史
+images    List images                                   # 列出系统当前镜像
+```
+
+![](./docker-image/010.png)
+
+### Docker镜像
+
+#### 镜像
+
+是一种轻量级、可执行的独立软件包，它包含运行某个软件所需的所有内容，我们把应用程序和配置依赖打包好形成一个可交付的运行环境(包括代码、运行时需要的库、环境变量和配置文件等)，这个打包好的运行环境就是image镜像文件。
+
+只有通过这个镜像文件才能生成Docker容器实例(类似Java中new出来一个对象)。
+
+分层的镜像
+
+以我们的pull为例，在下载的过程中我们可以看到docker的镜像好像是在一层一层的在下载
+
+
+
+#### UnionFS（联合文件系统）
+
+UnionFS（联合文件系统）：Union文件系统（UnionFS）是一种分层、轻量级并且高性能的文件系统，它支持对文件系统的修改作为一次提交来一层层的叠加，同时可以将不同目录挂载到同一个虚拟文件系统下(unite several directories into a single virtual filesystem)。Union 文件系统是 Docker 镜像的基础。镜像可以通过分层来进行继承，基于基础镜像（没有父镜像），可以制作各种具体的应用镜像。
+
+特性：一次同时加载多个文件系统，但从外面看起来，只能看到一个文件系统，联合加载会把各层文件系统叠加起来，这样最终的文件系统会包含所有底层的文件和目录
+
+#### Docker镜像加载原理
+
+```
+docker的镜像实际上由一层一层的文件系统组成，这种层级的文件系统UnionFS。
+
+	bootfs(boot file system)主要包含bootloader和kernel, bootloader主要是引导加载kernel, Linux刚启动时会加载bootfs文件系统，在Docker镜像的最底层是引导文件系统bootfs。这一层与我们典型的Linux/Unix系统是一样的，包含boot加载器和内核。当boot加载完成之后整个内核就都在内存中了，此时内存的使用权已由bootfs转交给内核，此时系统也会卸载bootfs。
+```
+
+```
+rootfs (root file system) ，在bootfs之上。包含的就是典型 Linux 系统中的 /dev, /proc, /bin, /etc 等标准目录和文件。rootfs就是各种不同的操作系统发行版，比如Ubuntu，Centos等等。 
+```
+
+```
+平时我们安装进虚拟机的CentOS都是好几个G，为什么docker这里才200M？？
+	对于一个精简的OS，rootfs可以很小，只需要包括最基本的命令、工具和程序库就可以了，因为底层直接用Host的kernel，自己只需要提供 rootfs 就行了。由此可见对于不同的linux发行版, bootfs基本是一致的, rootfs会有差别, 因此不同的发行版可以公用bootfs。
+```
+
+
+
+#### 为什么 Docker 镜像要采用这种分层结构呢
+
+```
+镜像分层最大的一个好处就是共享资源，方便复制迁移，就是为了复用。
+ 
+比如说有多个镜像都从相同的 base 镜像构建而来，那么 Docker Host 只需在磁盘上保存一份 base 镜像；
+同时内存中也只需加载一份 base 镜像，就可以为所有容器服务了。而且镜像的每一层都可以被共享。
+```
+
+#### 重点理解
+
+```
+Docker镜像层都是只读的，容器层是可写的
+当容器启动时，一个新的可写层被加载到镜像的顶部。
+这一层通常被称作“容器层”，“容器层”之下的都叫“镜像层”。
+```
+
+#### Docker镜像commit操作案例
+
+```
+docker commit提交容器副本使之成为一个新的镜像
+
+docker commit -m="提交的描述信息" -a="作者" 容器ID 要创建的目标镜像名:[标签名]
+```
+
+##### 案例演示ubuntu安装vim
+
+```sh
+从Hub上下载ubuntu镜像到本地并成功运行
+docker run -it ubuntu /bin/bash
+
+原始的默认Ubuntu镜像是不带着vim命令的
+
+外网连通的情况下，安装vim
+
+docker容器内执行上述两条命令：
+apt-get update
+apt-get -y install vim
+
+安装完成后，commit我们自己的新镜像
+
+docker commit -m="描述" -a="作者" 容器ID  新镜像名字
+```
+
+### 本地镜像发布到阿里云
+
+#### 本地镜像发布到阿里云流程
+
+![](./docker-image/011.png)
+
+#### 阿里云开发者平台
+
+```http
+https://promotion.aliyun.com/ntms/act/kubernetes.html
+```
+
+![](./docker-image/012.png)
+
+#### 创建仓库镜像
+
+##### 选择控制台，进入容器镜像服务
+
+![](./docker-image/013.png)
+
+##### 选择个人实例
+
+![](./docker-image/014.png)
+
+##### 命名空间
+
+![](./docker-image/015.png)
+
+![](./docker-image/016.png)
+
+##### 仓库名称
+
+![](./docker-image/017.png)
+
+![](./docker-image/018.png)
+
+![](./docker-image/019.png)
+
+##### 进入管理界面获得脚本
+
+![](./docker-image/020.png)
+
+##### 将镜像推送到阿里云
+
+```sh
+ docker login --username=zzyybuy registry.cn-hangzhou.aliyuncs.com
+ 
+ docker tag cea1bb40441c registry.cn-hangzhou.aliyuncs.com/atguiguwh/myubuntu:1.1
+ 
+ docker push registry.cn-hangzhou.aliyuncs.com/atguiguwh/myubuntu:1.1
+```
+
+##### 将阿里云镜像下载到本地
+
+```sh
+docker pull registry.cn-hangzhou.aliyuncs.com/atguiguwh/myubuntu:1.1
+```
+
+### 本地镜像发布到私有库
+
+##### 本地镜像发布到私有库流程
+
+![](./docker-image/011.png)
+
+##### Docker Registry是什么
+
+```
+ 
+1 官方Docker Hub地址：https://hub.docker.com/，中国大陆访问太慢了且准备被阿里云取代的趋势，不太主流。
+ 
+2 Dockerhub、阿里云这样的公共镜像仓库可能不太方便，涉及机密的公司不可能提供镜像给公网，所以需要创建一个本地私人仓库供给团队使用，基于公司内部项目构建镜像。
+ 
+Docker Registry是官方提供的工具，可以用于构建私有镜像仓库
+```
+
+##### 将本地镜像推送到私有库
+
+###### 1. 下载镜像Docker Registry
+
+```sh
+docker pull registry 
+```
+
+###### 2. 运行私有库Registry，相当于本地有个私有Docker hub
+
+```sh
+docker run -d -p 5000:5000  -v /zzyyuse/myregistry/:/tmp/registry --privileged=true registry
+默认情况，仓库被创建在容器的/var/lib/registry目录下，建议自行用容器卷映射，方便于宿主机联调
+```
+
+###### 3. 案例演示创建一个新镜像，ubuntu安装ifconfig命令
+
+```sh
+#从Hub上下载ubuntu镜像到本地并成功运行
+docker pull ubuntu
+# 原始的Ubuntu镜像是不带着ifconfig命令的
+
+# 外网连通的情况下，安装ifconfig命令并测试通过
+docker容器内执行上述两条命令：
+apt-get update
+apt-get install net-tools
+
+# 安装完成后，commit我们自己的新镜像
+公式：
+docker commit -m="提交的描述信息" -a="作者" 容器ID 要创建的目标镜像名:[标签名]
+命令：在容器外执行，记得
+docker commit -m="ifconfig cmd add" -a="zzyy" a69d7c825c4f zzyyubuntu:1.2
+```
+
+###### 4. curl验证私服库上有什么镜像
+
+```http
+ curl -XGET http://192.168.111.162:5000/v2/_catalog
+```
+
+###### 5. 将新镜像修改符合私服规范的Tag
+
+```
+
+按照公式： docker   tag   镜像:Tag   Host:Port/Repository:Tag
+自己host主机IP地址，填写同学你们自己的，不要粘贴错误
+使用命令 docker tag 将zzyyubuntu:1.2 这个镜像修改为192.168.111.162:5000/zzyyubuntu:1.2
+ 
+docker tag  zzyyubuntu:1.2  192.168.111.162:5000/zzyyubuntu:1.2
+```
+
+###### 6. 修改配置文件使之支持http
+
+```sh
+vim命令新增如下内容：vim /etc/docker/daemon.json
+
+{
+  "registry-mirrors": ["https://aa25jngu.mirror.aliyuncs.com"],
+  "insecure-registries": ["192.168.111.162:5000"]
+}
+
+重启docker
+systemctl restart docker
+```
+
+###### 7. push推送到私服库
+
+```sh
+docker push 192.168.111.162:5000/zzyyubuntu:1.2
+```
+
+###### 8. curl验证私服库上有什么镜像
+
+```sh
+curl -XGET http://192.168.111.162:5000/v2/_catalog
+```
+
+###### 9. pull到本地并运行
+
+```sh
+docker pull 192.168.111.162:5000/zzyyubuntu:1.2
+```
+
+### Docker容器数据卷
+
+#### 是什么
+
+```
+卷就是目录或文件，存在于一个或多个容器中，由docker挂载到容器，但不属于联合文件系统，因此能够绕过Union File System提供一些用于持续存储或共享数据的特性：
+卷的设计目的就是数据的持久化，完全独立于容器的生存周期，因此Docker不会在容器删除时删除其挂载的数据卷
+
+
+一句话：有点类似我们Redis里面的rdb和aof文件
+将docker容器内的数据保存进宿主机的磁盘中
+运行一个带有容器卷存储功能的容器实例
+ docker run -it --privileged=true -v /宿主机绝对路径目录:/容器内目录      镜像名
+```
+
