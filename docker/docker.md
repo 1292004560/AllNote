@@ -1278,3 +1278,112 @@ CMD 指令的格式和RUN相似，也是两种格式
 Dockerfile 中可以有多个 CMD 指令，但只有最后一个生效，CMD 会被 docker run 之后的参数替换
 ```
 
+**它和前面RUN命令的区别**
+
+```
+CMD是在docker run 时运行。
+
+RUN是在 docker build时运行。
+```
+
+###### ENTRYPOINT
+
+```
+也是用来指定一个容器启动时要运行的命令
+
+类似于 CMD 指令，但是ENTRYPOINT不会被docker run后面的命令覆盖，
+而且这些命令行参数会被当作参数送给 ENTRYPOINT 指令指定的程序
+```
+
+**命令格式和案例说明**
+
+```sh
+命令格式 : 
+	ENTRYPOINT["<executeable>","param1","param2",...]
+
+ENTRYPOINT可以和CMD一起用，一般是变参才会使用 CMD ，这里的 CMD 等于是在给 ENTRYPOINT 传参。
+当指定了ENTRYPOINT后，CMD的含义就发生了变化，不再是直接运行其命令而是将CMD的内容作为参数传递给ENTRYPOINT指令，他两个组合会变成
+ENTRYPOINT "<CMD>"
+```
+
+**案例如下：假设已通过 Dockerfile 构建了 nginx:test 镜像：**
+
+```dockerfile
+FROM nginx
+ENTRYPOINT ["nginx","-c"] # 定参
+CMD ["/etc/nginx/nginx.conf"] # 变参
+```
+
+| 是否传参         | 安装dockerfile编写执行         | 传参运行                                      |
+| ---------------- | ------------------------------ | --------------------------------------------- |
+| Docker命令       | docker run  nginx:test         | docker run  nginx:test -c /etc/nginx/new.conf |
+| 衍生出的实际命令 | nginx -c /etc/nginx/nginx.conf | nginx -c /etc/nginx/new.conf                  |
+
+<b style="color:red;">优点 : 在执行docker run的时候可以指定 ENTRYPOINT 运行所需的参数。</b>
+
+<b style="color:red;">注意: 如果 Dockerfile 中如果存在多个 ENTRYPOINT 指令，仅最后一个生效。</b>
+
+#### 自定义镜像mycentosjava8
+
+```dockerfile
+FROM centos
+MAINTAINER  zhou-shui-ping@qq.com
+ENV MYPATH /usr/local
+RUN rm -r /etc/yum.repos.d/**
+RUN mkdir -p /etc/yum.repos.d
+RUN curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
+RUN yum makecache
+
+RUN yum install -y vim
+RUN yum install -y net-tools
+RUN mkdir /usr/local/java
+ADD jdk-8u192-linux-x64.tar.gz /usr/local/java/
+
+ENV JAVA_HOME /usr/local/java/jdk1.8.0_192
+
+ENV JRE_HOME $JAVA_HOME/jre
+
+ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar:$JRE_HOME/lib:$CLASSPATH
+
+ENV PATH $JAVA_HOME/bin:$PATH
+
+
+EXPOSE 80
+
+CMD echo $MYPATH
+CMD echo "success--------------ok"
+CMD /bin/bash
+```
+
+```sh
+docker build -t 新镜像名字:TAG . # 注意，上面TAG后面有个空格，有个点
+```
+
+#### 虚悬镜像
+
+##### 是什么
+
+```
+仓库名、标签都是<none>的镜像，俗称dangling image
+
+Dockerfile写一个
+
+1. vim Dockerfile
+FROM ubuntu
+CMD echo 'action is success'
+
+2. docker build .
+```
+
+##### 查看虚悬镜像
+
+```sh
+docker image ls -f dangling=true
+```
+
+##### 删除虚悬镜像
+
+```sh
+docker image prune
+```
+
