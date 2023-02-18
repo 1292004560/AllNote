@@ -81,9 +81,9 @@ uname命令用于打印当前系统相关信息（内核版本号、硬件架构
 
 ![](.\docker-image\002.png)
 
-## Docker的基本组成
+###  Docker的基本组成
 
-### 镜像(image)
+####  镜像(image)
 
 * Docker 镜像（Image）就是一个只读的模板。镜像可以用来创建 Docker 容器，一个镜像可以创建很多容器。
 
@@ -91,7 +91,7 @@ uname命令用于打印当前系统相关信息（内核版本号、硬件架构
 
   相当于容器的“源代码”，**docker镜像文件类似于Java的类模板，而docker容器实例类似于java中new出来的实例对象。**
 
-### 容器(container)
+#### 容器(container)
 
 1. 从面向对象角度
 
@@ -101,7 +101,7 @@ uname命令用于打印当前系统相关信息（内核版本号、硬件架构
 
    可以把容器看做是一个简易版的 Linux 环境（包括root用户权限、进程空间、用户空间和网络空间等）和运行在其中的应用程序。
 
-### 仓库（Repository）
+####  仓库（Repository）
 
 仓库（Repository）是集中存放镜像文件的场所。
 
@@ -119,17 +119,17 @@ Docker公司提供的官方registry被称为Docker Hub，存放各种镜像模�
 
 存放了数量庞大的镜像供用户下载。国内的公开仓库包括阿里云 、网易云等
 
-## Docker平台架构图解(入门版)
+#### Docker平台架构图解(入门版)
 
 ![](./docker-image/003.png)
 
-## Docker工作原理
+####  Docker工作原理
 
 * Docker是一个Client-Server结构的系统，Docker守护进程运行在主机上， 然后通过Socket连接从客户端访问，守护进程从客户端接受命令并管理运行在主机上的容器。 容器，是一个运行时环境，就是我们前面说到的集装箱。可以对比mysql演示对比讲解
 
 ![](./docker-image\004.png)
 
-## Docker平台架构图解(架构版)
+###  Docker平台架构图解(架构版)
 
 #### 整体架构及底层通信原理简述
 
@@ -139,7 +139,7 @@ Docker 是一个 C/S 模式的架构，后端是一个松耦合架构，众多�
 
 ![](./docker-image/006.png)
 
-## centos7 docker安装步骤
+###	centos7 docker安装步骤
 
 #### 确定你是 CentOS7 及以上版本
 
@@ -215,7 +215,9 @@ rm -rf /var/lib/containerd
 
 ![](./docker-image/008.png)
 
-## Docker常用命令
+
+
+### Docker常用命令
 
 #### 帮助启动类命令
 
@@ -457,7 +459,7 @@ images    List images                                   # 列出系统当前镜�
 
 ![](./docker-image/010.png)
 
-## Docker镜像
+### Docker镜像
 
 #### 镜像
 
@@ -468,6 +470,8 @@ images    List images                                   # 列出系统当前镜�
 分层的镜像
 
 以我们的pull为例，在下载的过程中我们可以看到docker的镜像好像是在一层一层的在下载
+
+
 
 #### UnionFS（联合文件系统）
 
@@ -538,7 +542,7 @@ apt-get -y install vim
 docker commit -m="描述" -a="作者" 容器ID  新镜像名字
 ```
 
-## 本地镜像发布到阿里云
+### 本地镜像发布到阿里云
 
 #### 本地镜像发布到阿里云流程
 
@@ -596,7 +600,7 @@ https://promotion.aliyun.com/ntms/act/kubernetes.html
 docker pull registry.cn-hangzhou.aliyuncs.com/atguiguwh/myubuntu:1.1
 ```
 
-## 本地镜像发布到私有库
+### 本地镜像发布到私有库
 
 ##### 本地镜像发布到私有库流程
 
@@ -696,7 +700,7 @@ curl -XGET http://192.168.111.162:5000/v2/_catalog
 docker pull 192.168.111.162:5000/zzyyubuntu:1.2
 ```
 
-## Docker容器数据卷
+### Docker容器数据卷
 
 #### 是什么
 
@@ -709,681 +713,5 @@ docker pull 192.168.111.162:5000/zzyyubuntu:1.2
 将docker容器内的数据保存进宿主机的磁盘中
 运行一个带有容器卷存储功能的容器实例
  docker run -it --privileged=true -v /宿主机绝对路径目录:/容器内目录      镜像名
-```
-
-#### 能干嘛
-
-```
-*  将运用与运行的环境打包镜像，run后形成容器实例运行 ，但是我们对数据的要求希望是持久化的
- 
-Docker容器产生的数据，如果不备份，那么当容器实例删除后，容器内的数据自然也就没有了。
-为了能保存数据在docker中我们使用卷。
- 
-特点：
-1：数据卷可在容器之间共享或重用数据
-2：卷中的更改可以直接实时生效，爽
-3：数据卷中的更改不会包含在镜像的更新中
-4：数据卷的生命周期一直持续到没有容器使用它为止
-```
-
-#### 数据卷案例
-
-##### 1. 宿主vs容器之间映射添加容器卷
-
-```sh
-直接命令添加
-公式：docker run -it -v /宿主机目录:/容器内目录 ubuntu /bin/bash
-docker run -it --privileged=true -v /宿主机绝对路径目录:/容器内目录      镜像名
-
-查看数据卷是否挂载成功
-docker inspect 容器ID
-=====================================================================
-"Mounts": [
-            {
-                "Type": "bind",
-                "Source": "/zzyyuse/myregistry", 
-                "Destination": "/tmp/registry",
-                "Mode": "",
-                "RW": true,
-                "Propagation": "rprivate"
-            },
-            {
-                "Type": "volume",
-                "Name": "6d123f05d79c846b1191ad65cc7ced3e9c8f762904d749070c83eaf585044650",
-                "Source": "/var/lib/docker/volumes/6d123f05d79c846b1191ad65cc7ced3e9c8f762904d749070c83eaf585044650/_data",
-                "Destination": "/var/lib/registry",
-                "Driver": "local",
-                "Mode": "",
-                "RW": true,
-                "Propagation": ""
-            }
-        ]
-================================================================================        
- 
- 
- 容器和宿主机之间数据共享
- 1.  docker修改，主机同步获得 
- 2.  主机修改，docker同步获得
- 3.  docker容器stop，主机修改，docker容器重启看数据是否同步。
-```
-
-##### 3. 读写规则映射添加说明
-
-```sh
-读写(默认)  默认就是rw
- docker run -it --privileged=true -v /宿主机绝对路径目录:/容器内目录:rw      镜像名
-
-只读
-容器实例内部被限制，只能读取不能写
- docker run -it --privileged=true -v /宿主机绝对路径目录:/容器内目录:ro      镜像名
-```
-
-##### 4. 卷的继承和共享
-
-```sh
-容器1完成和宿主机的映射
-docker run -it  --privileged=true -v /mydocker/u:/tmp --name u1 ubuntu
-
-容器2继承容器1的卷规则
-docker run -it  --privileged=true --volumes-from 父类  --name u2 ubuntu
-```
-
-## Docker常规安装简介
-
-### 总体步骤
-
-###### 1. 搜索镜像
-
-```sh
-docker search 镜像名字
-```
-
-###### 2. 拉取镜像
-
-```sh
-docker pull 镜像名字
-```
-
-###### 3. 查看镜像
-
-```sh
-docker images
-```
-
-###### 4. 启动镜像--服务端口映射
-
-```sh
-docker run -d -p 6379:6379 --name myredis redis
-```
-
-###### 5. 停止容器
-
-```sh
-docker stop 镜像名字
-```
-
-###### 6. 移除容器
-
-```sh
-docker rm 镜像名字
-```
-
-### 安装tomcat
-
-###### docker hub上面查找tomcat镜像
-
-```sh
-docker search tomcat
-```
-
-###### 从docker hub上拉取tomcat镜像到本地
-
-```sh
-docker pull tomcat
-```
-
-###### docker images查看是否有拉取到的tomcat
-
-```sh
-docker images tomcat
-```
-
-###### 使用tomcat镜像创建容器实例(也叫运行镜像)
-
-```sh
-docker run -it -p 8080:8080 tomcat
-
--p 小写，主机端口:docker容器端口
--P 大写，随机分配端口
--i 交互
--t 终端
--d 后台
-```
-
-###### 访问tomcat首页
-
-**问题 **
-
-![](./docker-image/021.png)
-
-**解决**
-
-```sh
-可能没有映射端口或者没有关闭防火墙
-ufw status
-把webapps.dist目录换成webapps
-docker exec -it  c12e0dcf411a /bin/bash
-mv   webapps.dist webapps
-```
-
-### 安装mysql
-
-##### docker hub上面查找mysql镜像
-
-```sh
-docker search mysql
-```
-
-###### 从docker hub上(阿里云加速器)拉取mysql镜像到本地标签为5.7
-
-```sh
-docker pull mysql:5.7
-```
-
-###### 使用mysql5.7镜像创建容器(也叫运行镜像)
-
-**简单版 **
-
-```sh
-使用mysql镜像 
-docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.7
-docker ps
-docker exec -it 容器ID /bin/bash
-mysql -uroot -p
-
-建库建表插入数据
-create database db01;
-use db01;
-create table aa(id int, name varchar(20));
-
-insert into aa values(1,"ss");
-select * from aa;
-
-外部Win10也来连接运行在dokcer上的mysql容器实例服务
-
-插入中文数据试试
-insert into aa values(2, '张三');
-#报错
-docker上默认字符集编码隐患
- 
-docker里面的mysql容器实例查看，内容如下：
- 
-SHOW VARIABLES LIKE 'character%'
-```
-
-**实战版**
-
-```sh
-新建mysql容器实例
-docker run -d -p 3306:3306 --privileged=true -v /zzyyuse/mysql/log:/var/log/mysql -v /zzyyuse/mysql/data:/var/lib/mysql -v /zzyyuse/mysql/conf:/etc/mysql/conf.d -e MYSQL_ROOT_PASSWORD=123456  --name mysql mysql:5.7
-
-新建my.cnf  通过容器卷同步给mysql容器实例
-touch /zzyyuse/mysql/conf/my.cnf
-
-[client]
-default_character_set=utf8
-[mysqld]
-collation_server = utf8_general_ci
-character_set_server = utf8
-
-重新启动mysql容器实例再重新进入并查看字符编码
-再新建库新建表再插入中文测试
-docker restart mysql
-
-之前的DB  无效
- 
-修改字符集操作+重启mysql容器实例
- 
-之后的DB  有效，需要新建
- 
-结论：docker安装完MySQL并run出容器后，建议请先修改完字符集编码后再新建mysql库-表-插数据
-```
-
-## Docker复杂安装详说
-
-### 安装mysql主从复制
-
-###### 1. 新建主服务器容器实例3307
-
-```sh
-docker run -p 3307:3306 --name mysql-master \
--v /mydata/mysql-master/log:/var/log/mysql \
--v /mydata/mysql-master/data:/var/lib/mysql \
--v /mydata/mysql-master/conf:/etc/mysql \
--e MYSQL_ROOT_PASSWORD=root  \
--d mysql:5.7
-```
-
-###### 2. 进入/mydata/mysql-master/conf目录下新建my.cnf
-
-```sh
-vim /mydata/mysql-master/conf/my.cnf
-
-
-[mysqld]
-## 设置server_id，同一局域网中需要唯一
-server_id=101 
-## 指定不需要同步的数据库名称
-binlog-ignore-db=mysql  
-## 开启二进制日志功能
-log-bin=mall-mysql-bin  
-## 设置二进制日志使用内存大小（事务）
-binlog_cache_size=1M  
-## 设置使用的二进制日志格式（mixed,statement,row）
-binlog_format=mixed  
-## 二进制日志过期清理时间。默认值为0，表示不自动清理。
-expire_logs_days=7  
-## 跳过主从复制中遇到的所有错误或指定类型的错误，避免slave端复制中断。
-## 如：1062错误是指一些主键重复，1032错误是因为主从数据库数据不一致
-slave_skip_errors=1062
-```
-
-###### 3. 修改完配置后重启master实例
-
-```sh
-docker restart mysql-master
-```
-
-###### 4. 进入mysql-master容器
-
-```sh
-docker exec -it mysql-master /bin/bash
-
-mysql -uroot -proot
-```
-
-###### 5. master容器实例内创建数据同步用户
-
-```sh
-CREATE USER 'slave'@'%' IDENTIFIED BY '123456';
-# 授权
-GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'slave'@'%';
-```
-
-###### 6. 新建从服务器容器实例3308
-
-```sh
-docker run -p 3308:3306 --name mysql-slave \
--v /mydata/mysql-slave/log:/var/log/mysql \
--v /mydata/mysql-slave/data:/var/lib/mysql \
--v /mydata/mysql-slave/conf:/etc/mysql \
--e MYSQL_ROOT_PASSWORD=root  \
--d mysql:5.7
-```
-
-###### 7. 进入/mydata/mysql-slave/conf目录下新建my.cnf
-
-```sh
-vim my.cnf
-
-[mysqld]
-## 设置server_id，同一局域网中需要唯一
-server_id=102
-## 指定不需要同步的数据库名称
-binlog-ignore-db=mysql  
-## 开启二进制日志功能，以备Slave作为其它数据库实例的Master时使用
-log-bin=mall-mysql-slave1-bin  
-## 设置二进制日志使用内存大小（事务）
-binlog_cache_size=1M  
-## 设置使用的二进制日志格式（mixed,statement,row）
-binlog_format=mixed  
-## 二进制日志过期清理时间。默认值为0，表示不自动清理。
-expire_logs_days=7  
-## 跳过主从复制中遇到的所有错误或指定类型的错误，避免slave端复制中断。
-## 如：1062错误是指一些主键重复，1032错误是因为主从数据库数据不一致
-slave_skip_errors=1062  
-## relay_log配置中继日志
-relay_log=mall-mysql-relay-bin  
-## log_slave_updates表示slave将复制事件写进自己的二进制日志
-log_slave_updates=1  
-## slave设置为只读（具有super权限的用户除外）
-read_only=1
-```
-
-###### 8. 修改完配置后重启slave实例
-
-```sh
-docker restart mysql-slave
-```
-
-###### 9. 在主数据库中查看主从同步状态
-
-```sh
-show master status;
-```
-
-###### 10. 进入mysql-slave容器
-
-```sh
-docker exec -it mysql-slave /bin/bash
-
-mysql -uroot -proot
-```
-
-###### 11. 在从数据库中配置主从复制
-
-```sh
-change master to master_host='宿主机ip', master_user='slave', master_password='123456', master_port=3307, master_log_file='mall-mysql-bin.000001', master_log_pos=617, master_connect_retry=30;
-```
-
-**主从命令参数说明**
-
-```sh
-master_host：主数据库的IP地址；
-master_port：主数据库的运行端口；
-master_user：在主数据库创建的用于同步数据的用户账号；
-master_password：在主数据库创建的用于同步数据的用户密码；
-master_log_file：指定从数据库要复制数据的日志文件，通过查看主数据的状态，获取File参数；
-master_log_pos：指定从数据库从哪个位置开始复制数据，通过查看主数据的状态，获取Position参数；
-master_connect_retry：连接失败重试的时间间隔，单位为秒。
-```
-
-###### 12. 在从数据库中查看主从同步状态
-
-```sh
-show slave status \G;
-```
-
-![](./docker-image/022.png)
-
-###### 13. 在从数据库中开启主从同步
-
-```sh
-start slave
-```
-
-###### 14. 查看从数据库状态发现已经同步
-
-```sh
-show slave status /G;
-```
-
-![](./docker-image/023.png)
-
-###### 15. 主从复制测试
-
-```sh
-主机新建库-使用库-新建表-插入数据，ok
- docker exec -it mysql-master /bin/bash
- 
-从机使用库-查看记录，ok
-docker exec -it mysql-slave /bin/bash
-show databases;
-```
-
-## DockerFile解析
-
-#### 是什么
-
-```
-Dockerfile是用来构建Docker镜像的文本文件，是由一条条构建镜像所需的指令和参数构成的脚本。
-
-https://docs.docker.com/engine/reference/builder/(官网)
-
-
-
-```
-
-```sh
-构建三步骤
-
-编写Dockerfile文件
-
-docker build命令构建镜像
-
-docker run依镜像运行容器实例
-```
-
-#### DockerFile构建过程解析
-
-###### Dockerfile内容基础知识
-
-1. 每条保留字指令都 **必须为大写字母** 且后面要跟随至少一个参数
-2. 指令按照从上到下，顺序执行
-3. #表示注释
-4. 每条指令都会创建一个新的镜像层并对镜像进行提交
-
-###### Docker执行Dockerfile的大致流程
-
-1. docker从基础镜像运行一个容器
-2. 执行一条指令并对容器作出修改
-3. 执行类似docker commit的操作提交一个新的镜像层
-4. docker再基于刚提交的镜像运行一个新容器
-5. 执行dockerfile中的下一条指令直到所有指令都执行完成
-
-###### 小总结
-
-```
-从应用软件的角度来看，Dockerfile、Docker镜像与Docker容器分别代表软件的三个不同阶段，
-*  Dockerfile是软件的原材料
-*  Docker镜像是软件的交付品
-*  Docker容器则可以认为是软件镜像的运行态，也即依照镜像运行的容器实例
-Dockerfile面向开发，Docker镜像成为交付标准，Docker容器则涉及部署与运维，三者缺一不可，合力充当Docker体系的基石。
-```
-
-![](./docker-image/024.png)
-
-```
-1、 Dockerfile，需要定义一个Dockerfile，Dockerfile定义了进程需要的一切东西。Dockerfile涉及的内容包括执行代码或者是文件、环境变量、依赖包、运行时环境、动态链接库、操作系统的发行版、服务进程和内核进程(当应用进程需要和系统服务和内核进程打交道，这时需要考虑如何设计namespace的权限控制)等等;
- 
-2、 Docker镜像，在用Dockerfile定义一个文件之后，docker build时会产生一个Docker镜像，当运行 Docker镜像时会真正开始提供服务;
- 
-3、 Docker容器，容器是直接提供服务的。
-```
-
-#### DockerFile常用保留字指令
-
-###### FROM
-
-```sh
-基础镜像，当前新镜像是基于哪个镜像的，指定一个已经存在的镜像作为模板，第一条必须是FROM
-```
-
-###### MAINTAINER
-
-```
-镜像维护者的姓名和邮箱地址
-```
-
-###### RUN
-
-```
-容器构建时需要运行的命令
-
-两种格式 : 
-	shell格式  RUN yum -y install vim
-	exec格式   RUN ['可执行文件',' 参数1','参数2'] 等价于  RUN ./test.php dev offine
-
-RUN是在 docker build时运行
-```
-
-###### EXPOSE
-
-```
-当前容器对外暴露出的端口
-```
-
-###### WORKDIR
-
-```
-指定在创建容器后，终端默认登陆的进来工作目录，一个落脚点
-```
-
-###### USER
-
-```
-指定该镜像以什么样的用户去执行，如果都不指定，默认是root
-```
-
-###### ENV
-
-```
-用来在构建镜像过程中设置环境变量
-
-ENV MY_PATH /usr/mytest
-这个环境变量可以在后续的任何RUN指令中使用，这就如同在命令前面指定了环境变量前缀一样；
-也可以在其它指令中直接使用这些环境变量，
- 
-比如：WORKDIR $MY_PATH
-```
-
-###### ADD
-
-```
-将宿主机目录下的文件拷贝进镜像且会自动处理URL和解压tar压缩包
-```
-
-###### COPY
-
-```
-类似ADD，拷贝文件和目录到镜像中。
-将从构建上下文目录中 <源路径> 的文件/目录复制到新的一层的镜像内的 <目标路径> 位置
-
-COPY src dest
-COPY ["src", "dest"]
-<src源路径>：源文件或者源目录
-<dest目标路径>：容器内的指定路径，该路径不用事先建好，路径不存在的话，会自动创建。
-```
-
-###### VOLUME
-
-```
-容器数据卷，用于数据保存和持久化工作
-```
-
-###### CMD
-
-```sh
-指定容器启动后的要干的事情
-
-CMD 指令的格式和RUN相似，也是两种格式
-	. shell格式 : CMD <命令>
-	. exec格式  : CMD ["可执行文件", '参数1','参数2'...]
-	. 参数列表格式 : CMD ["可执行文件", '参数1','参数2'...] #  在指定 ENTRYPOINT 指令后,用CMD指定具体参数
-```
-
-**注意 **
-
-```
-Dockerfile 中可以有多个 CMD 指令，但只有最后一个生效，CMD 会被 docker run 之后的参数替换
-```
-
-**它和前面RUN命令的区别**
-
-```
-CMD是在docker run 时运行。
-
-RUN是在 docker build时运行。
-```
-
-###### ENTRYPOINT
-
-```
-也是用来指定一个容器启动时要运行的命令
-
-类似于 CMD 指令，但是ENTRYPOINT不会被docker run后面的命令覆盖，
-而且这些命令行参数会被当作参数送给 ENTRYPOINT 指令指定的程序
-```
-
-**命令格式和案例说明**
-
-```sh
-命令格式 : 
-	ENTRYPOINT["<executeable>","param1","param2",...]
-
-ENTRYPOINT可以和CMD一起用，一般是变参才会使用 CMD ，这里的 CMD 等于是在给 ENTRYPOINT 传参。
-当指定了ENTRYPOINT后，CMD的含义就发生了变化，不再是直接运行其命令而是将CMD的内容作为参数传递给ENTRYPOINT指令，他两个组合会变成
-ENTRYPOINT "<CMD>"
-```
-
-**案例如下：假设已通过 Dockerfile 构建了 nginx:test 镜像：**
-
-```dockerfile
-FROM nginx
-ENTRYPOINT ["nginx","-c"] # 定参
-CMD ["/etc/nginx/nginx.conf"] # 变参
-```
-
-| 是否传参         | 安装dockerfile编写执行         | 传参运行                                      |
-| ---------------- | ------------------------------ | --------------------------------------------- |
-| Docker命令       | docker run  nginx:test         | docker run  nginx:test -c /etc/nginx/new.conf |
-| 衍生出的实际命令 | nginx -c /etc/nginx/nginx.conf | nginx -c /etc/nginx/new.conf                  |
-
-<b style="color:red;">优点 : 在执行docker run的时候可以指定 ENTRYPOINT 运行所需的参数。</b>
-
-<b style="color:red;">注意: 如果 Dockerfile 中如果存在多个 ENTRYPOINT 指令，仅最后一个生效。</b>
-
-#### 自定义镜像mycentosjava8
-
-```dockerfile
-FROM centos
-MAINTAINER  zhou-shui-ping@qq.com
-ENV MYPATH /usr/local
-RUN rm -r /etc/yum.repos.d/**
-RUN mkdir -p /etc/yum.repos.d
-RUN curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
-RUN yum makecache
-
-RUN yum install -y vim
-RUN yum install -y net-tools
-RUN mkdir /usr/local/java
-ADD jdk-8u192-linux-x64.tar.gz /usr/local/java/
-
-ENV JAVA_HOME /usr/local/java/jdk1.8.0_192
-
-ENV JRE_HOME $JAVA_HOME/jre
-
-ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar:$JRE_HOME/lib:$CLASSPATH
-
-ENV PATH $JAVA_HOME/bin:$PATH
-
-
-EXPOSE 80
-
-CMD echo $MYPATH
-CMD echo "success--------------ok"
-CMD /bin/bash
-```
-
-```sh
-docker build -t 新镜像名字:TAG . # 注意，上面TAG后面有个空格，有个点
-```
-
-#### 虚悬镜像
-
-##### 是什么
-
-```
-仓库名、标签都是<none>的镜像，俗称dangling image
-
-Dockerfile写一个
-
-1. vim Dockerfile
-FROM ubuntu
-CMD echo 'action is success'
-
-2. docker build .
-```
-
-##### 查看虚悬镜像
-
-```sh
-docker image ls -f dangling=true
-```
-
-##### 删除虚悬镜像
-
-```sh
-docker image prune
 ```
 

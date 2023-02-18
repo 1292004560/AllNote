@@ -1810,12 +1810,15 @@ box{
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
+
 /* em 和 i 斜体的文字不倾斜 */
 em,
 i {
     font-style: normal
 }
+
 /* 去掉li 的小圆点 */
 li {
     list-style: none
@@ -1845,7 +1848,12 @@ a:hover {
 button,
 input {
     /* "\5B8B\4F53" 就是宋体的意思 这样浏览器兼容性比较好 */
-    font-family: Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif
+    font-family: Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif;
+
+    /* 默认有灰色边框 需要手动去掉 */
+    border: 0; 
+    outline: none;
+    
 }
 
 body {
@@ -1860,6 +1868,7 @@ body {
 .none {
     display: none
 }
+
 /* 清除浮动 */
 .clearfix:after {
     visibility: hidden;
