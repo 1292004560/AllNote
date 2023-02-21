@@ -611,6 +611,155 @@ for (var k in obj){
 * 内置对象就是指JS语言自带的一些对象，这些对象供开发者使用，并提供了一些常用的或最基本而必要的功能(属性和方法)
 * JavaScript提供了多个内置对象 : `Math 、 Date 、Array、String等`
 
+#### Math对象
+
+```js
+Math.PI  // 圆周率
+
+Math.max(1,2,345,67);
+
+Math.floor(); //向下取整
+
+Math.ceil();  //向上取整
+
+Math.random();
+```
+
+#### 日期对象
+
+```js
+var date = new Date(); // 没有跟参数，返回系统当前时间
+
+// 获得Date总毫秒数 不是当前的毫秒数 而是距离1970年1月1号过了多少毫秒数
+// 获取时间戳
+console.log(date.valueOf()); 
+console.log(date.getTime());
+```
+
+#### 数组对象
+
+```js
+// 检测是否为数组
+var arr = [];
+
+console.log(arr instanceof Aarry);
+
+console.log(Array.isArray(arr));
+```
+
+#### 添加数组元素
+
+| 方法名              | 说明                                                   | 返回值               |
+| ------------------- | ------------------------------------------------------ | -------------------- |
+| `push(参数1...)`    | 末尾添加一个或多个元素，注意修改原数组的长度           | 并返回新的长度       |
+| `pop()`             | 删除数组最后一个元素，把数组长度减1 无参数、修改原数组 | 返回它删除元素的值   |
+| `unshift(参数1...)` | 向数组的开头添加一个或更多元素，注意修改原数组         | 并返回新的长度       |
+| `shift()`           | 删除数组的第一个元素，数组长度减1无参数、修改原数组    | 并返回第一个元素的值 |
+
+#### 数组排序
+
+| 方法名      | 说名                       | 是否修改原数组                     |
+| ----------- | -------------------------- | ---------------------------------- |
+| `reverse()` | 颠倒数组中元素顺序，无参数 | 该方法会改变原来的数值，返回新数组 |
+| `sort()`    | 对数组的元素进行排序       | 该方法会改变原来的数值，返回新数组 |
+
+#### 数组索引方法
+
+| 方法名          | 说明                           | 返回值                                  |
+| --------------- | ------------------------------ | --------------------------------------- |
+| `indexOf()`     | 数组中查找给定元素的第一个索引 | 如果存在返回索引号 如果不存在，则返回-1 |
+| `lastIndexOf()` | 在数组中的最后一个索引         | 如果存在返回索引号 如果不存在，则返回-1 |
+
+#### 数组转换为字符串
+
+| 方法名           | 说明                                     | 返回值         |
+| ---------------- | ---------------------------------------- | -------------- |
+| `toString()`     | 把数组转换成字符串，逗号分隔每一项       | 返回一个字符串 |
+| `join('分割符')` | 方法永远把数组中的所有元素转换一个字符串 | 返回一个字符串 |
+
+#### 基本包装类型
+
+ 为了方便操作基本数据类型，JavaScript还提供了三种特殊的引用类型 : `String 、Number、Boolean`。
+
+<b style="color:red;">基本包装类型</b> 就是把简单数据类型包装成为复杂数据类型，这样基本数据类型就有了属性和方法。
+
+#### 根据位置返回字符
+
+| 方法名              | 说明                                | 使用               |
+| ------------------- | ----------------------------------- | ------------------ |
+| `charAt(index)`     | 返回指定位置的字符(index字符串索引) | str.charAt(0)      |
+| `charCodeAt(index)` | 返回指定位置字符的ASCII码           | str.charCodeAt(0); |
+| `str[index]`        | 获取指定位置处字符串                | HTML5 IE8+支持     |
+
+## DOM
+
+文档对象模型(Document Object Model，简称DOM)，是W3C组织推荐的处理可扩展标记语言(HTML或XML)的标准<span style="color:red;">编程接口</span> 。
+
+#### 获取元素
+
+**根据Id获取**
+
+```html
+<html lang="en">
+  <head>
+    <title>getElementById example</title>
+  </head>
+  <body>
+    <p id="param">Some text here</p>
+    <button onclick="changeColor('blue');">blue</button>
+    <button onclick="changeColor('red');">red</button>
+  </body>
+</html>
+```
+
+```js
+function changeColor(newColor) {
+  const elem = document.getElementById('param');
+  elem.style.color = newColor;
+}
+```
+
+#### 根据标签名获取
+
+```js
+var li_list = document.getElementsByTagName('li');
+```
+
+还可以获取某个元素(父元素) 内部所有指定签名的子元素
+
+```js
+element.getElementsByTagName('li');
+```
+
+#### 通过HTML5新增的方法获取
+
+```js
+document.getElementsByClassName('类名'); //根据类名返回元素对象集合
+```
+
+```js
+document.querySelector('选择器');// 根据选择器返回第一个元素
+```
+
+```js
+document.querySelectorAll('选择器'); // 根据指定选择器返回所有
+```
+
+#### 获取特殊元素
+
+ ```js
+ bodyElement = document.body; // 返回body元素对象
+ console.log(dir(bodyElement));
+ 
+ document.documentElement(); //返回html元素对象 
+ ```
+
+## 事件
+
+
+
+
+
 
 
 
