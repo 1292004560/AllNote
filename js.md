@@ -756,11 +756,275 @@ document.querySelectorAll('选择器'); // 根据指定选择器返回所有
 
 ## 事件
 
+事件是可以被JavaScript侦测到的行为
 
+事件包含三部分 : `事件源`、`事件类型`、`事件处理程序`
 
+```js
+// 获取事件
+var btn = document.getElementById('btn'); // 按钮
+// 绑定事件
+// div.onclick()
 
+// 添加事件处理程序
+btn.onclick() = function(){
+  
+}
 
+```
 
+#### 常见的鼠标事件
 
+| 鼠标事件      | 触发条件         |
+| ------------- | ---------------- |
+| `onclick`     | 鼠标点击左键触发 |
+| `onmouseover` | 鼠标经过触发     |
+| `onmouseout`  | 鼠标离开触发     |
+| `onfocus`     | 获得鼠标焦点触发 |
+| `onblur`      | 失去鼠标焦点触发 |
+| `onmousemove` | 鼠标移动触发     |
+| `onmouseup`   | 鼠标弹起触发     |
+| `onmousedown` | 鼠标按下触发     |
 
+#### 改变元素内容
+
+```js
+element.innerText; //不识别html
+```
+
+从起始位置到终止位置的内容，但它会去除html标签，同时空格和换行也会去掉
+
+```js
+element.innerHTML ; //识别html
+```
+
+从起始位置到终止位置的全部内容，包括html标签，同时保留空格和换行
+
+#### 表单元素的属性操作
+
+利用DOM可以操作如下表单元素的属性 : 
+
+`type` 、`value` 、`checked` 、`selected` 、`disabled`
+
+#### 自定义属性的操作
+
+```js
+element.属性 获取属性值 //获取自带属性
+
+element.getAttribute('属性');//主要获取自定义属性
+
+element.属性 = '值';
+
+element.setAttribute('属性','值');
+
+//移除属性
+element.removeAttribute('属性');
+```
+
+#### HTML5自定义属性
+
+自定义属性获取是通过`getAttribute('属性')`获取。但是有些自定义属性很容易引起歧义，不容易判断是元素的内置属性还是自定义属性。
+
+H5规定自定义属性`data-`开头作为属性名并且赋值
+
+```html
+<div data-index="1"></div>
+或者使用JS设置
+element.setAttribute('data-index',2);
+```
+
+获取H5自定义属性
+
+```js
+element.getAttribute('data-index'); // 兼容获取
+element.dataset.index 或者element.dataset['index'] //html5新增获取 ie11支持
+```
+
+## 节点操作
+
+#### 节点描述
+
+一般地，节点至少拥有 `nodeType`(节点类型)、`nodeName` (节点名称) 和`nodeValue` (节点值) 这三个基本属性。
+
+* 元素节点 `nodeType` 为1
+* 属性节点 `nodeType`为2
+* 文本节点`nodeType` 为3 (文本节点包含文字、空格、换行等)
+
+<span style="color:red;">实际开发中，节点操作主要操作的是元素节点</span>
+
+#### 节点层级
+
+利用DOM树可以把节点划分为不同的层级关系，常见的是<b style="color:red;">父子层级关系</b> 。
+
+##### 1. 父级节点
+
+```js
+node.parentNode
+```
+
+* `parentNode` 属性可返回某节点的父节点，注意是最近的一个父节点
+* 如果指定的节点没有父节点则返回null
+
+##### 2. 子节点
+
+```js
+parentNode.childNodes (标准)
+返回包含指定节点的子节点的集合，该集合为即时更新的集合
+得到所有节点包含文本节点和元素节点
+```
+
+ ```js
+ parentNode.children(); //获取子元素节点
+ ```
+
+  ```js
+  parentNode.firstChild // 获取第一个子节点，找不到则返回null。同样包含所有节点
+  ```
+
+```js
+parentNode.lastChild
+```
+
+```js
+parentNode.firstElementChild // 获取第一个元素节点
+```
+
+```js
+parentNode.lastElementChild
+```
+
+##### 3. 兄弟节点
+
+```js
+node.nextSibling  // 获取所有节点
+```
+
+```js
+node.previousSibling // 获取所有节点
+```
+
+```js
+node.nextElementSibling // 获取元素节点
+```
+
+```js
+node.previousElementSibling // 获取元素节点
+```
+
+#### 创建节点
+
+```js
+document.createElement('tagName');
+```
+
+#### 添加节点
+
+```js
+node.appenChild('');//后面追加元素
+```
+
+```js
+node.insertBefore(child,指定元素)
+```
+
+#### 删除节点
+
+```js
+node.removeChild(child);
+```
+
+#### 复制节点
+
+```js
+node.cloneNode()
+```
+
+<b style="color:red;">注意 : </b>
+
+1. 如果括号参数为空或者`false` ，则是浅拷贝，即只复制节点本身，不复制里面的子节点。
+2. 如果括号参数为空或者`true` ，则是深拷贝。
+
+#### 三种动态创建元素区别
+
+* `document.write()`
+* `element.innerHTML`
+* `document.createElement()`
+
+**区别 **
+
+1. `document.write`是直接将内容写入页面的内容流，但是文档流执行完毕，则它会导致页面全部重绘
+2. `innerHTML` 是将内容写入某个DOM节点，不会导致全部从绘
+3. `innerHTML` 创建多个元素效率更高(不要拼接字符串，采取数组形式拼接)，结构稍微复杂
+4. `createElement() ` 创建多个元素效率稍低一点点，但是结构更清晰
+
+## 事件高级
+
+#### 注册事件(绑定事件)
+
+给元素添加事件，称为<span style="color:red;">注册事件</span> 或者 <span style="color:red;">绑定事件</span>
+
+注册事件有两种方式 : <span style="color:red;">传统方式和方法监听注册方式</span>
+
+**传统方式 : **
+
+* 利用on开头的事件`onclick`
+* `<button onclick="alert('hi')"></button>`
+* 特点 : 注册事件的唯一性
+* 同一元素同一事件只能设置一个处理函数，最后注册的处理函数将会覆盖前面的处理函数
+
+**方法监听注册方式**
+
+* `addEventListener()` 
+* IE9之前的IE不支持此方法，可食用`attachEvent()`
+* 特点 : 同一元素同一事件可以注册多个监听器
+* 按注册顺序依次执行
+
+#### addEventListener事件监听方式
+
+```js
+eventTarget.addEventListener(type,listener[,userCapture])
+```
+
+`eventTarget.addEventListener()` 方法将指定的监听器注册到`eventTarget` (目标对象) 上，当该对象触发指定的事件时，就会执行事件处理函数。
+
+该方法有三个参数 : 
+
+* `type` : 事件类型字符串，比如 `click 、mouseover`，注意不要带on
+* `listener` : 事件处理函数，事件发生时，会调用该监听函数
+* `useCapture`: 可选参数，是一个布尔值，默认fase
+
+#### 删除事件
+
+**传统注册方式**
+
+`eventTarget.onclick = null`
+
+```js
+let buttons = document.querySelectorAll('button');
+buttons[0].onclik = function(){
+  alert(11);//只弹一次
+  this.onclick = null;
+}
+```
+
+**方法监听注册方式 **
+
+`eventTarget.removeEventListener(type,listener[,useCapture]);`
+
+```js
+let buttons = document.querySelectorAll('button');
+buttons[0].addEventListener('click', fn);
+
+function fn(){
+  alert(11);
+  buttons[0].removeEventListener('click',fn);
+}
+
+```
+
+#### DOM事件流
+
+事件流描述的是从页面中接受事件的顺序。
+
+事件发生时会在元素节点之间按照特定的顺序传播，这个传播过程即DOM事件流。
 
