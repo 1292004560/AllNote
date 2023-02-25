@@ -1,0 +1,7 @@
+connect target
+RUN {
+allocate channel ch01 type 'SBT_TAPE' trace = 2;
+send 'ENV=(UUID=uuid)';
+restore database "PDB$SEED";
+RELEASE CHANNEL ch01;
+}
