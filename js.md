@@ -1028,3 +1028,43 @@ function fn(){
 
 事件发生时会在元素节点之间按照特定的顺序传播，这个传播过程即DOM事件流。
 
+**注意 : **
+
+1. JS代码中只执行捕获或者冒泡其中一个阶段。
+2. `onclick`和 `attachEvent` 只能得到冒泡阶段。
+3. `addEventListener(type,listener[,userCapture])` 第三个参数如果是 `true` ，表示在事件捕获阶段调用事件处理程序；如果是`false` (不写默认为`false`) ，表示在事件冒泡阶段调用事件处理程序。
+
+4. <span style="color:red;">实际开发中更关注事件冒泡。</span>
+5. <span style="color:red;">有些事件是没有冒泡的，比如 `onblur、onfocus 、onmouseenter、onmouselevave。`</span>
+6. 事件冒泡有时候会带来麻烦。
+
+#### 事件对象
+
+```js
+eventTarget.onclick = function(event){}
+eventTarget.addEventListener('click',function(event){})
+// 这个event就是事件对象，开发中一般写成e或evt
+```
+
+官方解释 : event对象代表事件的状态，比如键盘按键的状态、鼠标的位置、鼠标按钮的状态。
+
+简单解释 : 事件发生后，跟事件相关的一系列信息数据的集合都放到这个对象里面。这个对象就是事件对象event，有很多属性和方法。
+
+#### 事件对象的常见属性和方法
+
+| 事件对象属性方法    | 说明                                                     |
+| ------------------- | -------------------------------------------------------- |
+| `e.target`          | 返回触发事件对象     标准                                |
+| `e.srcElement`      | 返回触发事件对象     非标准                              |
+| `e.type`            | 返回事件的类型 比如 click 、mouseover 不带 on            |
+| `e.cancelBubble`    | 该属性阻止事件冒泡 非标准                                |
+| `e.returnValue`     | 该属性阻止默认事件 (默认行为) 非标准    比如不让链接跳转 |
+| `e.preventDefault`  | 该方法阻止默认事件 标准                                  |
+| `e.stopPropagation` | 阻止冒泡  标准                                           |
+
+
+
+
+
+
+
