@@ -153,7 +153,7 @@
 #### 用户权限
 
 * 查看用户权限
-  * ![用户权限](.\imges\linux01.png)
+  * ![用户权限](..\imges\linux01.png)
 * 字符权限表示方法
   * **r**  可读
   * **w** 可写
@@ -323,7 +323,7 @@
 
 ###### rpm包格式
 
-![rpm](.\imges\linux02.png)
+![rpm](..\imges\linux02.png)
 
 ###### rpm命令
 
