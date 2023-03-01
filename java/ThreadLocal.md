@@ -13,11 +13,11 @@
 
 ### ThreadLocal模型
 
-![](.\imges\ThreadLocal模型.png)
+![](..\imges\ThreadLocal模型.png)
 
 ### ThreadLocal实现原理
 
-![](.\imges\ThreadLocal实现原理.png)
+![](..\imges\ThreadLocal实现原理.png)
 
 ### ThreadLocal API
 
@@ -30,19 +30,19 @@
 
 1. 场景一
 
-   ![](.\imges\ThradLocal场景1.png)
+   ![](..\imges\ThradLocal场景1.png)
 
 2. 场景二
 
-   ![](.\imges\ThreadLocal场景2.png)
+   ![](..\imges\ThreadLocal场景2.png)
 
 3. 场景三
 
-   ![](.\imges\ThreadLocal场景3.png)
+   ![](..\imges\ThreadLocal场景3.png)
 
 4. 场景四
 
-   ![](.\imges\ThreadLocal场景4.png)
+   ![](..\imges\ThreadLocal场景4.png)
 
 ### 总结
 
@@ -627,13 +627,13 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
 }
 ```
 
-![](.\imges\ThreadLocal-Mybatis.png)
+![](..\imges\ThreadLocal-Mybatis.png)
 
-![](./imges/ThreadLocal-Mybatis01.png)
+![](../imges/ThreadLocal-Mybatis01.png)
 
 ### 源码选学03：分布式事务(选自Spring)
 
-![](.\imges\ThreadLocal-Spring.png)
+![](..\imges\ThreadLocal-Spring.png)
 
 ```java
 final class TransactionContextHolder {

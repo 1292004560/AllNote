@@ -1465,6 +1465,19 @@ http://www.taobao.com/index.html?name=zhou&age=18#link
 })(window, document);
 ```
 
+## 元素滚动scroll 系列
+
+使用`scroll` 系列的相关属性可以动态的得到该元素的大小、滚动距离等。
+
+#### scroll 属性
+
+| scroll系列属性         | 作用                                           |
+| ---------------------- | ---------------------------------------------- |
+| `element.scrollTop`    | 返回被卷上去的上侧距离，返回数值不带单位       |
+| `element.scrollLeft`   | 返回被卷上去的左侧距离，返回数值不带单位       |
+| `element.scrollWidth`  | 返回自身实际的宽度不含边框，返回数值不带单位   |
+| `element.scrollHeight` | 返回自身实际的高度，不含边框，返回数值不带单位 |
+
 
 
 

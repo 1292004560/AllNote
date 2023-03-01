@@ -42,15 +42,67 @@ cd /usr/local/bin/
 
 ```sh
 cd /usr/local/bin/
- ./redis-cli -a 123456
+./redis-cli -a 123456
 ```
 
 #### 关闭redis
 
 ```sh
-单实例关闭：
+单实例关闭:
 redis-cli -a 123456 shutdown
 多实例关闭，指定端口关闭:
 redis-cli -p 6379 shutdown
+```
+
+## redis 数据类型
+
+#### String
+
+```sh
+```
+
+#### List
+
+```sh
+```
+
+#### Hash
+
+```sh
+```
+
+#### Set
+
+```sh
+```
+
+#### ZSet
+
+```sh
+```
+
+#### GEO
+
+```sh
+```
+
+#### HyperLogLog
+
+```sh
+```
+
+#### bitmap
+
+```sh
+```
+
+#### bitfield
+
+```sh
+```
+
+#### Stream
+
+```sh
 ```
 
