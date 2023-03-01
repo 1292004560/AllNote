@@ -936,7 +936,7 @@ node.removeChild(child);
 #### 复制节点
 
 ```js
-node.cloneNode()
+node.cloneNode();
 ```
 
 <b style="color:red;">注意 : </b>
@@ -1035,7 +1035,7 @@ function fn(){
 3. `addEventListener(type,listener[,userCapture])` 第三个参数如果是 `true` ，表示在事件捕获阶段调用事件处理程序；如果是`false` (不写默认为`false`) ，表示在事件冒泡阶段调用事件处理程序。
 
 4. <span style="color:red;">实际开发中更关注事件冒泡。</span>
-5. <span style="color:red;">有些事件是没有冒泡的，比如 `onblur、onfocus 、onmouseenter、onmouselevave。`</span>
+5. <span style="color:red;">有些事件是没有冒泡的，比如 `onblur、onfocus 、onmouseenter、onmouseleave。`</span>
 6. 事件冒泡有时候会带来麻烦。
 
 #### 事件对象
@@ -1061,6 +1061,411 @@ eventTarget.addEventListener('click',function(event){})
 | `e.returnValue`     | 该属性阻止默认事件 (默认行为) 非标准    比如不让链接跳转 |
 | `e.preventDefault`  | 该方法阻止默认事件 标准                                  |
 | `e.stopPropagation` | 阻止冒泡  标准                                           |
+
+**this 和 target的区别**
+
+1. `e.target` 返回的是触发事件的对象
+2. `this` 返回的是绑定事件的对象
+
+#### 事件委托(代理、委派)
+
+事件冒泡本身特性，会带来坏处，也会带来<b style="color:red;">好处</b>。
+
+事件委托也称事件代理，在`jQuery` 里面称事件委派。
+
+**事件委托原理**
+
+<span style="color:red;">不是每个节点单独设置事件监听器，而是事件监听器设置在其父节点上，然后利用冒泡原来影响设置每个子节点。</span>
+
+如 : 给 `ul` 注册点击事件，然后利用事件对象的`target`来找到当前点击的`li` ，因为点击`li`，事件会冒泡到`ul`上，`ul`有注册事件，就会触发事件监听器。
+
+**事件委托的作用**
+
+只操作了一次DOM，提高了程序的性能。
+
+#### 常用的鼠标事件
+
+1.  禁止鼠标右键菜单
+
+`contextmenu` 主要控制应该何时显示上下文菜单，主要用于程序取消默认的上下文菜单
+
+```js
+document.addEventListener('contextmenu',function(e){
+  e.preventDefault();
+})
+```
+
+2. 禁止鼠标选中(`selectstart` 开始选中)
+
+```js
+document.addEventListener('selectstart',function(e){
+  e.preventDefault();
+})
+```
+
+#### 鼠标事件对象
+
+`event` 对象代表事件状态，跟事件相关的一系列信息的集合。现阶段我们主要是用鼠标事件对象`MoseEvent` 和键盘事件对象 `KeyboardEvent`。
+
+| 鼠标事件对象 | 说明                                         |
+| ------------ | -------------------------------------------- |
+| `e.clientX`  | 返回鼠标相对于浏览器窗口可视区的`X`     坐标 |
+| `e.clientY`  | 返回鼠标相对于浏览器窗口可视区的`Y`   坐标   |
+| `e.pageX`    | 返回相当于文档页面的 `X` 坐标 IE+9支持       |
+| `e.pageY`    | 返回相当于文档页面的 `Y` 坐标 IE+9支持       |
+| `e.screenX`  | 返回鼠标相对于电脑屏幕的`X` 坐标             |
+| `e.screenY`  | 返回鼠标相对于电脑屏幕的`Y` 坐标             |
+
+```js
+document.addEventListener('click',function(e){
+  console.log(e.clientX);
+  console.log(e.clientY);
+})
+```
+
+#### 常用键盘事件
+
+| 键盘事件     | 触发条件                                                     |
+| ------------ | ------------------------------------------------------------ |
+| `onkeyup`    | 某个键盘按键被松开是触发                                     |
+| `onkeydown`  | 某个键盘按键被按下时触发                                     |
+| `onkeypress` | 某个键盘按键被按下时 触发 <b style="color:red;">但是它不识别功能按键 比如 ctrl shift. 箭头等</b> |
+
+<b style="color:red;">注意 : </b>
+
+1. 如果使用 `addEventListener` 不需要加 `on`
+2. 三个事件的执行顺序是 : `keydown-- keypress--keyup` 
+
+#### 键盘事件对象
+
+| 键盘事件对象属性 | 说明               |
+| ---------------- | ------------------ |
+| `keyCode`        | 返回该键的ASCII 值 |
+
+<b style="color:red;">注意 : </b>  `onkeydown` 和 `onkeyup` 不区分字母大小写，`onkeypress` 区分字母大小写。在实际开发中，更多使用 `keydown` 和 `keyup` ，它能识别所有的键(包括功能键) `keypress` 不识别功能键，但是 `keyCode` 属性能区分大小写，返回不同的 ASCII值
+
+## BOM
+
+ #### 什么是BOM
+
+BOM(Browser Object. Model) 即 浏览器对象模型，它提供了独立于内容而与浏览器窗口进行交互的对象，其核心对象是 `window` 。
+
+#### BOM的构成
+
+BOM 比DOM更大，它包含DOM
+
+|    window    |
+| :----------: |
+|  `document`  |
+|  `location`  |
+| `navigation` |
+|   `screen`   |
+|  `history`   |
+
+<b style="color:red;">window是浏览器的顶级对象，</b>它具有双重角色。
+
+1. 它是js访问浏览器窗口的一个接口。
+2. 它是一个全局对象。定义在全局作用域中的变量、函数都会变成`window` 对象的属性和方法。
+
+在调用的时候可以省略`window` ，前面学习的对话框都属于`window` 对象方法，如 `alert()  、prompt() `等。
+
+```js
+alert('hello world');
+
+window.alert('hello world');
+```
+
+#### 窗口加载事件
+
+```js
+window.onload = function(){}
+或者
+window.addEventListener('load',function(){})
+```
+
+`window.onload` 是窗口(页面) 加载事件，当文档内容完全加载完成会触发该事件(包括图像、脚本文件、CSS 文件呢等)，就调用的处理函数。
+
+<b style="color:red;">注意 : </b>
+
+1. 有了 `window.onload` 就可以把JS代码写到页面元素的上方，因为`onload` 是等页面内容全部加载完毕，再去执行处理函数。
+2. `window.onload` 传统注册事件只能写一次，如果有多个，会以最后一个`window.onload` 为准。
+3. `window.addEventListener('load',function(){})` 这这种写法没有限制。
+
+```js
+document.addEventListener('DOMContentLoaded',function(){})
+```
+
+`DOMContentLoaded` 事件触发时，仅当 `DOM` 加载完成，不包括样式表、图片、flash等。(IE9以上支持)
+
+如果页面的图片很多的话，从用户访问到`onload` 触发可能需要很长的时间，交互效果就不能实现，必然会影响用户体验，此时用 `DOMContentLoaded` 事件比较合适。
+
+#### 调整窗口大小事件
+
+```js
+window.onresize = function(){}
+或者 
+window.addEventListener('resize',function(){});
+```
+
+`window.onresize` 时调整窗口大小加载事件，当触发时就调用处理函数。
+
+<b style="color:red;">注意 : </b>
+
+1. 只要窗口大小发生变化，就会触发这个事件。
+2. 我们经常利用这个事件完成响应式布局 。 `window.innerWidth` 当前屏幕宽度。
+
+#### 两种定时器
+
+`window` 对象给我们提供了2个非常好用的方法-`定时器`
+
+* `setTimeout()`
+* `setInterval()`
+
+```js
+window.setTimeout(调用函数,[延迟的毫秒树]);
+```
+
+`setTimeout() ` 方法用于设置一个定时器，该定时器在定时器到期后执行调用函数。
+
+1. `window` 可以省略。
+2. 这个调用函数可以直接写函数。
+3. 延迟的毫秒数省略默认是0，如果写，必须是毫秒。
+4. 因为定时器可能有很多，所以经常给定时器赋值一个标识符。
+
+`setTimeout()` 这个函数称为回调函数 `callback`
+
+#### 停止setTimeout()定时器
+
+```js
+window.clearTimeout(timeoutID);
+```
+
+#### setInterval() 定时器
+
+```js
+window.setInterval(回调函数,[间隔的毫秒数]);
+```
+
+`setInterval()` 方法重复调用一个函数，每隔这个时间，就去调用一次回调函数。
+
+#### 停止setInterval() 定时器
+
+```js
+window.clearInterval(intervalID);
+```
+
+`clearInterval()` 方法取消了先前通过调用`setInterval()` 建立的定时器。
+
+#### JS是单线程
+
+`JavaScript` 语言的一大特点就是单线程也就是说，同一时间只能做一件事。这是因为`JavaScriptt`这门脚本语言诞生的使命所致---`JavaScript` 是为处理页面中用户的交互，以及操作DOM而诞生的。比如我们对某个DOM元素进行添加和删除操作，不能同时进行。应该先进行添加，之后在删除。
+
+单线程就意味着，所有任务需要排队，前一个任务结束，才会执行后一个任务。这样所导致的问题是: 如果JS执行的时间过长，这样就会造成页面的渲染不连贯，导致页面渲染加载阻塞的感觉。
+
+为了解决这个问题，利用多核CPU的计算能力，HTML5提出了`Web Worker` 标准，允许`JavaScript` 脚本创建多个线程。于是，JS出现了同步和异步。
+
+#### 同步和异步
+
+**同步任务 **
+
+同步任务都在主线程上执行形成一个<b style="color:red;">执行栈。</b>
+
+**异步任务**
+
+JS的异步是通过回调函数实现的。
+
+一般而言，异步任务有一下三种类型 : 
+
+1. 普通时间，如 `click、resize` 等
+2. 资源加载，如 `load、error`等
+3. 定时器，包括`setInterval、setTimeout` 等
+
+异步任务相关<span style="color:red;">回调函数</span>添加到<span style="color:red;">任务队列中</span>(任务队列也称为消息队列)。
+
+#### JS执行机制
+
+1. 先执行执行栈中的同步任务。
+2. 异步任务(回调函数)放入任务队列中。
+3. 一旦执行栈中的所有同步任务执行完毕，系统就会按次序读取任务队列中的异步任务，于是被读取的异步任务结束等待状态，进入执行栈，开始执行。
+
+由于主线程不断的重复获得任务、执行任务、再获取任务、再执行，所以这种机制被称为<span style="color:red;">事件循环(event loop)</span>
+
+ #### location对象
+
+`window` 对象给我们提供了一个 `location` 属性用于获取或设置窗体的URL，并且可以用于解析URL。
+
+#### URL
+
+URL的一般语法格式为:
+
+```http
+protocol://host[:port]/path/[?query]#fragment
+
+http://www.taobao.com/index.html?name=zhou&age=18#link
+```
+
+| 组成       | 说明                           |
+| ---------- | ------------------------------ |
+| `protocol` | 通信协议                       |
+| `host`     | 域名                           |
+| `port`     | 端口号                         |
+| `path`     | 路径                           |
+| `query`    | 参数                           |
+| `fragment` | 片段 # 后面内容 常见于链接锚点 |
+
+##### location对象的属性
+
+| location对象        | 返回值                                 |
+| ------------------- | -------------------------------------- |
+| `location.href`     | 获取或者设置整个URL                    |
+| `location.host`     | 返回主机(域名) `www.taobao.com`        |
+| `location.port`     | 返回端口号 如果未写 返回空字符串       |
+| `location.pathname` | 返回路径                               |
+| `location.search`   | 返回参数                               |
+| `location.hash`     | 返回片段     # 后面内容 常见于链接锚点 |
+
+##### location对象的方法
+
+| location对象方法     | 返回值                                                       |
+| -------------------- | ------------------------------------------------------------ |
+| `location.assign()`  | 跟 `href` 一样，可以跳转页面(也称重定向页面)                 |
+| `location.replace()` | 替换当前页面，因为不记录历史，所以不能后退页面               |
+| `location.reload()`  | 重新加载页面，相当于刷新按钮或者 F5 如果参数为true 强制刷新 ctrl + f5 |
+
+#### navigator 对象
+
+可以判断用户是使用PC端浏览器还是移动端浏览器。
+
+#### history 对象
+
+`window` 对象提供了一个`history` 对象，与浏览器历史记录进行交互。该对象包含用户(在浏览器窗口中) 访问过的URL。
+
+| hostory 对象方法 | 作用                                                      |
+| ---------------- | --------------------------------------------------------- |
+| `back() `        | 后退                                                      |
+| `forward()`      | 前进功能                                                  |
+| `go(参数)`       | 前进后退功能 参数如果是1 前进1个页面 如果是-1后退一个页面 |
+
+##  元素偏移量offset 系列
+
+#### offset概述
+
+使用`offset` 系列相关属性可以动态的得到该元素的位置(偏移)、大小等。
+
+*  获得元素距离带有定位父元素的位置
+* 获得元素自身大小(宽度、高度)
+* 注意 : 返回的数值都不带单位
+
+| offset系列属性         | 作用                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| `element.offsetParent` | 返回作为该元素带有定位的父级元素 如果父级元素都没有定位则返回body |
+| `element.offsetTop`    | 返回元素相对带有定位父元素上方的偏移                         |
+| `element.offsetLeft`   | 返回元素相对带有定位父元素左方的偏移                         |
+| `element.offsetWidth`  | 返回自身包括`padding`、边框、内容区的宽度，返回数值不带单位  |
+| `element.offsetHeight` | 返回自身包括`padding`、边框、内容区的高度，返回数值不带单位  |
+
+#### offset与style 区别
+
+<b style="color:red;">offset</b>
+
+* `offset` 可以得到任意样式表中的样式值
+* `offset` 系列获得的数值是没有单位的
+* `offsetWidth` 包含`padding + border+width`
+* `offsetWidth` 等属性是只读属性，只能获取不能赋值
+*  <span style="color:red;">所以，想要获取元素大小位置，用offset更合适</span>
+
+<b style="color:red;">style</b>
+
+* `style` 只能行内样式表中的样式值
+* `style.width` 获得的是带有单位的字符串
+* `style.width` 获得不包含`padding` 和 `border` 的值
+*  `style.width` 是可写属性，可以获取也可以赋值
+* <span style="color:red;">所以，想要给元素更改值，用style更合适</span>
+
+## 元素可视区client系列
+
+`client` 系列相关属性可以获取元素可视区的相关信息，通过`client` 的相关属性可以动态得到该元素的边框大小、元素大小等。
+
+#### client 系列相关属性
+
+| client系列属性         | 作用                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| `element.clientTop`    | 返回元素上边框的大小                                         |
+| `element.clientLeft`   | 返回元素做左边框的大小                                       |
+| `element.clientWidth`  | 返回自身包括padding、内容区的宽度，不含边框，返回数值不带单位 |
+| `element.clientHeight` | 返回自身包括padding、内容区的高度，不含边框，返回数值不带单位 |
+
+#### 立即执行函数
+
+不需要调用，立马能够自己执行的函数，也可以传递参数，多个立即执行函数，用逗号隔开。
+
+```js
+(function(){})() /*或者*/ (function(){}())
+
+// 第二个小括号可以看做是调用函数
+(function(a,b){
+  console.log(a+b);
+})(1,2)
+```
+
+<b style="color:red;">主要作用 : </b> 创建一个独立的作用域，避免了命名冲突的问题。
+
+#### flexible.js源码分析
+
+```js
+(function flexible(window, document) {
+  // 获取的html 的根元素
+  var docEl = document.documentElement;
+  // dpr 物理像素比
+  var dpr = window.devicePixelRatio || 1;
+
+  // adjust body font size    设置body 的字体大小
+  function setBodyFontSize() {
+    // 如果页面中有body 这一个元素，就设置body大小
+    if (document.body) {
+      document.body.style.fontSize = 12 * dpr + "px";
+    } else {
+      // 如果页面中没有body 这个元素，则等页面中主要的DOM元素加载完毕后，再设置body的字体大小
+      document.addEventListener("DOMContentLoaded", setBodyFontSize);
+    }
+  }
+  setBodyFontSize();
+
+  // set 1rem = viewWidth / 10    设置html 元素的字体大小
+  function setRemUnit() {
+    // rem  把html分成24等份
+    var rem = docEl.clientWidth / 24;
+    docEl.style.fontSize = rem + "px";
+  }
+
+  setRemUnit();
+
+  // reset rem unit on page resize    当页面尺寸大小发生变化的时候，要重新设置一下rem 的大小
+  window.addEventListener("resize", setRemUnit);
+  // pageshow 重新加载页面触发的事件
+  window.addEventListener("pageshow", function(e) {
+    // e.persisted 返回的事true 就是说如果这个页面事从缓存取过来的页面，也需要重新计算一下rem 的大小
+    if (e.persisted) {
+      setRemUnit();
+    }
+  });
+
+  // detect 0.5px supports    用来处理有些移动端的浏览器不支持0.5像素的写法
+  if (dpr >= 2) {
+    var fakeBody = document.createElement("body");
+    var testElement = document.createElement("div");
+    testElement.style.border = ".5px solid transparent";
+    fakeBody.appendChild(testElement);
+    docEl.appendChild(fakeBody);
+    if (testElement.offsetHeight === 1) {
+      docEl.classList.add("hairlines");
+    }
+    docEl.removeChild(fakeBody);
+  }
+})(window, document);
+```
+
+
 
 
 
