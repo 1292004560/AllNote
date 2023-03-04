@@ -957,6 +957,85 @@ node.cloneNode();
 3. `innerHTML` 创建多个元素效率更高(不要拼接字符串，采取数组形式拼接)，结构稍微复杂
 4. `createElement() ` 创建多个元素效率稍低一点点，但是结构更清晰
 
+#### 简单留言板发布案例
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            padding: 100px;
+        }
+        
+        textarea {
+            width: 200px;
+            height: 100px;
+            border: 1px solid pink;
+            outline: none;
+            resize: none;
+        }
+        
+        ul {
+            margin-top: 50px;
+        }
+        
+        li {
+            width: 300px;
+            padding: 5px;
+            background-color: rgb(245, 209, 243);
+            color: red;
+            font-size: 14px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <textarea name="" id=""></textarea>
+    <button>发布</button>
+    <ul>
+
+    </ul>
+    <script>
+        // 1. 获取元素
+        var btn = document.querySelector('button');
+        var text = document.querySelector('textarea');
+        var ul = document.querySelector('ul');
+        // 2. 注册事件
+        btn.onclick = function() {
+            if (text.value == '') {
+                alert('您没有输入内容');
+                return false;
+            } else {
+                // console.log(text.value);
+                // (1) 创建元素
+                var li = document.createElement('li');
+                // 先有li 才能赋值
+                li.innerHTML = text.value;
+                // (2) 添加元素
+                // ul.appendChild(li);
+                ul.insertBefore(li, ul.children[0]);
+            }
+        }
+    </script>
+</body>
+
+</html>
+```
+
+
+
 ## 事件高级
 
 #### 注册事件(绑定事件)
@@ -1123,6 +1202,50 @@ document.addEventListener('click',function(e){
 })
 ```
 
+
+
+#### 案例
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        img {
+            position: absolute;
+            top: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="images/angel.gif" alt="">
+    <script>
+        var pic = document.querySelector('img');
+        document.addEventListener('mousemove', function(e) {
+            // 1. mousemove只要我们鼠标移动1px 就会触发这个事件
+            // console.log(1);
+            // 2.核心原理： 每次鼠标移动，我们都会获得最新的鼠标坐标， 把这个x和y坐标做为图片的top和left 值就可以移动图片
+            var x = e.pageX;
+            var y = e.pageY;
+            console.log('x坐标是' + x, 'y坐标是' + y);
+            //3 . 千万不要忘记给left 和top 添加px 单位
+            pic.style.left = x - 50 + 'px';
+            pic.style.top = y - 40 + 'px';
+
+
+        });
+    </script>
+</body>
+
+</html>
+```
+
 #### 常用键盘事件
 
 | 键盘事件     | 触发条件                                                     |
@@ -1143,6 +1266,93 @@ document.addEventListener('click',function(e){
 | `keyCode`        | 返回该键的ASCII 值 |
 
 <b style="color:red;">注意 : </b>  `onkeydown` 和 `onkeyup` 不区分字母大小写，`onkeypress` 区分字母大小写。在实际开发中，更多使用 `keydown` 和 `keyup` ，它能识别所有的键(包括功能键) `keypress` 不识别功能键，但是 `keyCode` 属性能区分大小写，返回不同的 ASCII值
+
+#### 模拟京东快递单号查询
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .search {
+            position: relative;
+            width: 178px;
+            margin: 100px;
+        }
+
+        .con {
+            display: none;
+            position: absolute;
+            top: -40px;
+            width: 171px;
+            border: 1px solid rgba(0, 0, 0, .2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+            padding: 5px 0;
+            font-size: 18px;
+            line-height: 20px;
+            color: #333;
+        }
+
+        .con::before {
+            content: '';
+            width: 0;
+            height: 0;
+            position: absolute;
+            top: 28px;
+            left: 18px;
+            border: 8px solid #000;
+            border-style: solid dashed dashed;
+            border-color: #fff transparent transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="search">
+        <div class="con">123</div>
+        <input type="text" placeholder="请输入您的快递单号" class="jd">
+    </div>
+    <script>
+        // 快递单号输入内容时， 上面的大号字体盒子（con）显示(这里面的字号更大）
+        // 表单检测用户输入： 给表单添加键盘事件
+        // 同时把快递单号里面的值（value）获取过来赋值给 con盒子（innerText）做为内容
+        // 如果快递单号里面内容为空，则隐藏大号字体盒子(con)盒子
+        var con = document.querySelector('.con');
+        var jd_input = document.querySelector('.jd');
+        jd_input.addEventListener('keyup', function () {
+            // console.log('输入内容啦');
+            if (this.value == '') {
+                con.style.display = 'none';
+            } else {
+                con.style.display = 'block';
+                con.innerText = this.value;
+            }
+        })
+        // 当我们失去焦点，就隐藏这个con盒子
+        jd_input.addEventListener('blur', function () {
+            con.style.display = 'none';
+        })
+        // 当我们获得焦点，就显示这个con盒子
+        jd_input.addEventListener('focus', function () {
+            if (this.value !== '') {
+                con.style.display = 'block';
+            }
+        })
+    </script>
+</body>
+```
+
+
 
 ## BOM
 
@@ -1478,9 +1688,392 @@ http://www.taobao.com/index.html?name=zhou&age=18#link
 | `element.scrollWidth`  | 返回自身实际的宽度不含边框，返回数值不带单位   |
 | `element.scrollHeight` | 返回自身实际的高度，不含边框，返回数值不带单位 |
 
+##### 仿淘宝侧边栏
 
+```html
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .slider-bar {
+            position: absolute;
+            left: 50%;
+            top: 300px;
+            margin-left: 600px;
+            width: 45px;
+            height: 130px;
+            background-color: pink;
+        }
+        
+        .w {
+            width: 1200px;
+            margin: 10px auto;
+        }
+        
+        .header {
+            height: 150px;
+            background-color: purple;
+        }
+        
+        .banner {
+            height: 250px;
+            background-color: skyblue;
+        }
+        
+        .main {
+            height: 1000px;
+            background-color: yellowgreen;
+        }
+        
+        span {
+            display: none;
+            position: absolute;
+            bottom: 0;
+        }
+    </style>
+</head>
 
+<body>
+    <div class="slider-bar">
+        <span class="goBack">返回顶部</span>
+    </div>
+    <div class="header w">头部区域</div>
+    <div class="banner w">banner区域</div>
+    <div class="main w">主体部分</div>
+    <script>
+        //1. 获取元素
+        var sliderbar = document.querySelector('.slider-bar');
+        var banner = document.querySelector('.banner');
+        // banner.offestTop 就是被卷去头部的大小 一定要写到滚动的外面
+        var bannerTop = banner.offsetTop
+            // 当我们侧边栏固定定位之后应该变化的数值
+        var sliderbarTop = sliderbar.offsetTop - bannerTop;
+        // 获取main 主体元素
+        var main = document.querySelector('.main');
+        var goBack = document.querySelector('.goBack');
+        var mainTop = main.offsetTop;
+        // 2. 页面滚动事件 scroll
+        document.addEventListener('scroll', function() {
+            // console.log(11);
+            // window.pageYOffset 页面被卷去的头部
+            // console.log(window.pageYOffset);
+            // 3 .当我们页面被卷去的头部大于等于了 172 此时 侧边栏就要改为固定定位
+            if (window.pageYOffset >= bannerTop) {
+                sliderbar.style.position = 'fixed';
+                sliderbar.style.top = sliderbarTop + 'px';
+            } else {
+                sliderbar.style.position = 'absolute';
+                sliderbar.style.top = '300px';
+            }
+            // 4. 当我们页面滚动到main盒子，就显示 goback模块
+            if (window.pageYOffset >= mainTop) {
+                goBack.style.display = 'block';
+            } else {
+                goBack.style.display = 'none';
+            }
+
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### mouseenter和mouseover的区别
+
+* 当鼠标移动到元素上时就会触发`mouseenter` 事件
+* 类似`mouseover` 
+* `mouseover` 鼠标经过自身盒子会被触发，经过子盒子还会被触发，`mouseenter` 只经过自身盒子才会被触发
+* 之所以这样，是因为`mouseenter` 不会冒泡
+
+## 动画函数封装
+
+#### 动画实现原理
+
+<b style="color:red;">核心原理 : </b> 通过定时器`setInterval()` 不断移动盒子位置。
+
+实现步骤 : 
+
+1. 获取盒子当前位置
+2. 让盒子在当前位置加上1个移动距离
+3. 利用定时器不断重复这个操作
+4. 加一个结束定时器条件
+5. 注意此元素需要添加定位，才能使用 `element.style.left`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            position: absolute;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+        
+        span {
+            position: absolute;
+            left: 0;
+            top: 200px;
+            display: block;
+            width: 150px;
+            height: 150px;
+            background-color: purple;
+        }
+    </style>
+</head>
+
+<body>
+    <button>点击夏雨荷才走</button>
+    <div></div>
+    <span>夏雨荷</span>
+    <script>
+        // var obj = {};
+        // obj.name = 'andy';
+        // 简单动画函数封装obj目标对象 target 目标位置
+        // 给不同的元素指定了不同的定时器
+        function animate(obj, target) {
+            // 当我们不断的点击按钮，这个元素的速度会越来越快，因为开启了太多的定时器
+            // 解决方案就是 让我们元素只有一个定时器执行
+            // 先清除以前的定时器，只保留当前的一个定时器执行
+            clearInterval(obj.timer);
+            obj.timer = setInterval(function() {
+                if (obj.offsetLeft >= target) {
+                    // 停止动画 本质是停止定时器
+                    clearInterval(obj.timer);
+                }
+                obj.style.left = obj.offsetLeft + 1 + 'px';
+
+            }, 30);
+        }
+
+        var div = document.querySelector('div');
+        var span = document.querySelector('span');
+        var btn = document.querySelector('button');
+        // 调用函数
+        animate(div, 300);
+        btn.addEventListener('click', function() {
+            animate(span, 200);
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### 动画函数封装
+
+注意函数需要传递两个参数，<span style="color:red;">动画对象</span> 和 <span style="color:red;">移动的距离</span> 
+
+```js
+function animate(obj, target, callback) {
+    // console.log(callback);  callback = function() {}  调用的时候 callback()
+
+    // 先清除以前的定时器，只保留当前的一个定时器执行
+    clearInterval(obj.timer);
+    obj.timer = setInterval(function() {
+        // 步长值写到定时器的里面
+        // 把我们步长值改为整数 不要出现小数的问题
+        // var step = Math.ceil((target - obj.offsetLeft) / 10);
+        var step = (target - obj.offsetLeft) / 10;
+        step = step > 0 ? Math.ceil(step) : Math.floor(step);
+        if (obj.offsetLeft == target) {
+            // 停止动画 本质是停止定时器
+            clearInterval(obj.timer);
+            // 回调函数写到定时器结束里面
+            // if (callback) {
+            //     // 调用函数
+            //     callback();
+            // }
+            callback && callback();
+        }
+        // 把每次加1 这个步长值改为一个慢慢变小的值  步长公式：(目标值 - 现在的位置) / 10
+        obj.style.left = obj.offsetLeft + step + 'px';
+
+    }, 15);
+}
+```
+
+#### 缓动动画原理
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            position: absolute;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+        
+        span {
+            position: absolute;
+            left: 0;
+            top: 200px;
+            display: block;
+            width: 150px;
+            height: 150px;
+            background-color: purple;
+        }
+    </style>
+</head>
+
+<body>
+    <button>点击夏雨荷才走</button>
+    <span>夏雨荷</span>
+    <script>
+        // 缓动动画函数封装obj目标对象 target 目标位置
+        // 思路：
+        // 1. 让盒子每次移动的距离慢慢变小， 速度就会慢慢落下来。
+        // 2. 核心算法：(目标值 - 现在的位置) / 10 做为每次移动的距离 步长
+        // 3. 停止的条件是： 让当前盒子位置等于目标位置就停止定时器
+        function animate(obj, target) {
+            // 先清除以前的定时器，只保留当前的一个定时器执行
+            clearInterval(obj.timer);
+            obj.timer = setInterval(function() {
+                // 步长值写到定时器的里面
+                var step = (target - obj.offsetLeft) / 10;
+                if (obj.offsetLeft == target) {
+                    // 停止动画 本质是停止定时器
+                    clearInterval(obj.timer);
+                }
+                // 把每次加1 这个步长值改为一个慢慢变小的值  步长公式：(目标值 - 现在的位置) / 10
+                obj.style.left = obj.offsetLeft + step + 'px';
+
+            }, 15);
+        }
+        var span = document.querySelector('span');
+        var btn = document.querySelector('button');
+
+        btn.addEventListener('click', function() {
+                // 调用函数
+                animate(span, 500);
+            })
+            // 匀速动画 就是 盒子是当前的位置 +  固定的值 10 
+            // 缓动动画就是  盒子当前的位置 + 变化的值(目标值 - 现在的位置) / 10）
+    </script>
+</body>
+
+</html>
+```
+
+ #### 缓动动画添加回调函数
+
+```js
+function animate(obj, target, callback) {
+    // console.log(callback);  callback = function() {}  调用的时候 callback()
+
+    // 先清除以前的定时器，只保留当前的一个定时器执行
+    clearInterval(obj.timer);
+    obj.timer = setInterval(function() {
+        // 步长值写到定时器的里面
+        // 把我们步长值改为整数 不要出现小数的问题
+        // var step = Math.ceil((target - obj.offsetLeft) / 10);
+        var step = (target - obj.offsetLeft) / 10;
+        step = step > 0 ? Math.ceil(step) : Math.floor(step);
+        if (obj.offsetLeft == target) {
+            // 停止动画 本质是停止定时器
+            clearInterval(obj.timer);
+            // 回调函数写到定时器结束里面
+            // if (callback) {
+            //     // 调用函数
+            //     callback();
+            // }
+            callback && callback();
+        }
+        // 把每次加1 这个步长值改为一个慢慢变小的值  步长公式：(目标值 - 现在的位置) / 10
+        obj.style.left = obj.offsetLeft + step + 'px';
+
+    }, 15);
+}
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .sliderbar {
+            position: fixed;
+            right: 0;
+            bottom: 100px;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            line-height: 40px;
+            cursor: pointer;
+            color: #fff;
+        }
+        
+        .con {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 200px;
+            height: 40px;
+            background-color: purple;
+            z-index: -1;
+        }
+    </style>
+    <script src="animate.js"></script>
+</head>
+
+<body>
+    <div class="sliderbar">
+        <span>←</span>
+        <div class="con">问题反馈</div>
+    </div>
+
+    <script>
+        // 1. 获取元素
+        var sliderbar = document.querySelector('.sliderbar');
+        var con = document.querySelector('.con');
+        // 当我们鼠标经过 sliderbar 就会让 con这个盒子滑动到左侧
+        // 当我们鼠标离开 sliderbar 就会让 con这个盒子滑动到右侧
+        sliderbar.addEventListener('mouseenter', function() {
+            // animate(obj, target, callback);
+            animate(con, -160, function() {
+                // 当我们动画执行完毕，就把 ← 改为 →
+                sliderbar.children[0].innerHTML = '→';
+            });
+
+        })
+        sliderbar.addEventListener('mouseleave', function() {
+            // animate(obj, target, callback);
+            animate(con, 0, function() {
+                sliderbar.children[0].innerHTML = '←';
+            });
+        })
+    </script>
+</body>
+
+</html>
+```
 
 
 

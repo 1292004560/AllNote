@@ -355,12 +355,12 @@ systemctl enable --now kubelet
 ## 高可用组件安装
 
 ```sh
-所有Master节点通过yum安装HAProxy和KeepAlived：
+# 所有Master节点通过yum安装HAProxy和KeepAlived：
 yum install keepalived haproxy -y
 ```
 
 ```sh
-所有Master节点配置HAProxy（详细配置参考HAProxy文档，所有Master节点的HAProxy配置相同）：
+# 所有Master节点配置HAProxy（详细配置参考HAProxy文档，所有Master节点的HAProxy配置相同）：
 [root@k8s-master01 etc]# mkdir /etc/haproxy
 [root@k8s-master01 etc]# vim /etc/haproxy/haproxy.cfg 
 global
@@ -404,7 +404,7 @@ backend k8s-master
   server k8s-master03	192.168.0.107:6443  check
   
 　所有Master节点配置KeepAlived，配置不一样，注意区分 
-　[root@k8s-master01 pki]# vim /etc/keepalived/keepalived.conf ，注意每个节点的IP和网卡（interface参数）
+[root@k8s-master01 pki]# vim /etc/keepalived/keepalived.conf ，注意每个节点的IP和网卡（interface参数）
 ```
 
 **Master01节点的配置：**
