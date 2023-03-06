@@ -556,3 +556,386 @@ fi
 chmod +x /etc/keepalived/check_apiserver.sh
 ```
 
+### 启动haproxy和keepalived
+
+```sh
+[root@k8s-master01 keepalived]# systemctl enable --now haproxy
+[root@k8s-master01 keepalived]# systemctl enable --now keepalived
+```
+
+<b style="color:red;">注意 : </b>
+
+```sh
+重要：如果安装了keepalived和haproxy，需要测试keepalived是否是正常的
+telnet 192.168.0.200 16443
+如果ping不通且telnet没有出现 ]，则认为VIP不可以，不可在继续往下执行，需要排查keepalived的问题，比如防火墙和selinux，haproxy和keepalived的状态，监听端口等
+所有节点查看防火墙状态必须为disable和inactive：systemctl status firewalld
+所有节点查看selinux状态，必须为disable：getenforce
+master节点查看haproxy和keepalived状态：systemctl status keepalived haproxy
+master节点查看监听端口：netstat -lntp
+```
+
+```http
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/
+```
+
+## Master 节点的配置文件
+
+Master节点的kubeadm-config.yaml配置文件如下：
+
+### Master01 : 
+
+```yaml
+apiVersion: kubeadm.k8s.io/v1beta2
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: 7t2weq.bjbawausm0jaxury
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: 192.168.0.100
+  bindPort: 6443
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  name: k8s-master01
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+---
+apiServer:
+  certSANs:
+  - 192.168.0.200
+  timeoutForControlPlane: 4m0s
+apiVersion: kubeadm.k8s.io/v1beta2
+certificatesDir: /etc/kubernetes/pki
+clusterName: kubernetes
+controlPlaneEndpoint: 192.168.0.200:16443
+controllerManager: {}
+dns:
+  type: CoreDNS
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: registry.cn-hangzhou.aliyuncs.com/google_containers
+kind: ClusterConfiguration
+kubernetesVersion: v1.18.5
+networking:
+  dnsDomain: cluster.local
+  podSubnet: 172.168.0.0/16
+  serviceSubnet: 10.96.0.0/12
+scheduler: {}
+```
+
+### 更新kubeadm文件
+
+```sh
+kubeadm config migrate --old-config kubeadm-config.yaml --new-config new.yaml
+```
+
+**所有Master节点提前下载镜像，可以节省初始化时间：**
+
+```sh
+kubeadm config images pull --config /root/kubeadm-config.yaml
+```
+
+**所有节点设置开机自启动kubelet**
+
+```sh
+systemctl enable --now kubelet
+```
+
+Master01节点初始化，初始化以后会在/etc/kubernetes目录下生成对应的证书和配置文件，之后其他Master节点加入Master01即可：
+
+```sh
+kubeadm init --config /root/kubeadm-config.yaml  --upload-certs
+不用配置文件初始化：
+kubeadm init --control-plane-endpoint "LOAD_BALANCER_DNS:LOAD_BALANCER_PORT" --upload-certs
+```
+
+**如果初始化失败，重置后再次初始化，命令如下：**
+
+```sh
+kubeadm reset
+```
+
+**初始化成功以后，会产生Token值，用于其他节点加入时使用，因此要记录下初始化成功生成的token值（令牌值）：**
+
+**所有Master节点配置环境变量，用于访问Kubernetes集群：**
+
+```sh
+cat <<EOF >> /root/.bashrc
+export KUBECONFIG=/etc/kubernetes/admin.conf
+EOF
+source /root/.bashrc
+```
+
+### 查看节点状态
+
+```sh
+[root@k8s-master01 ~]# kubectl get nodes
+NAME           STATUS     ROLES     AGE       VERSION
+k8s-master01   NotReady   master    14m       v1.12.3
+```
+
+**采用初始化安装方式，所有的系统组件均以容器的方式运行并且在kube-system命名空间内，此时可以查看Pod状态：**
+
+```sh
+[root@k8s-master01 ~]# kubectl get pods -n kube-system -o wide
+NAME                                   READY     STATUS    RESTARTS   AGE       IP              NODE
+coredns-777d78ff6f-kstsz               0/1       Pending   0          14m       <none>          <none>
+coredns-777d78ff6f-rlfr5               0/1       Pending   0          14m       <none>          <none>
+etcd-k8s-master01                      1/1       Running   0          14m       192.168.0.100   k8s-master01
+kube-apiserver-k8s-master01            1/1       Running   0          13m       192.168.0.100   k8s-master01
+kube-controller-manager-k8s-master01   1/1       Running   0          13m       192.168.0.100   k8s-master01
+kube-proxy-8d4qc                       1/1       Running   0          14m       192.168.0.100   k8s-master01
+kube-scheduler-k8s-master01            1/1       Running   0          13m       192.168.0.100   k8s-master01
+```
+
+## Calico组件的安装
+
+### 添加docker加速器
+
+```sh
+vim  /etc/docker/daemon.json
+{
+"exec-opts": ["native.cgroupdriver=systemd"], 
+  "registry-mirrors": [
+    "https://registry.docker-cn.com",
+    "http://hub-mirror.c.163.com",
+    "https://docker.mirrors.ustc.edu.cn"
+  ]
+}
+systemctl daemon-reload
+systemctl restart docker
+```
+
+### 安装Calico
+
+```sh
+Calico：https://www.projectcalico.org/
+https://docs.projectcalico.org/getting-started/kubernetes/self-managed-onprem/onpremises
+
+curl https://docs.projectcalico.org/manifests/calico.yaml -O
+            - name: CALICO_IPV4POOL_CIDR
+              value: "172.168.0.0/16"
+
+kubectl apply -f calico.yaml
+```
+
+## token过期后生成新token
+
+```sh
+kubeadm token create --print-join-command
+
+Master需要生成--certificate-key
+kubeadm init phase upload-certs  --upload-certs
+
+
+
+初始化其他master加入集群
+kubeadm join 192.168.0.200:16443 --token 9zp1xe.h5kpi1b9kd5blk76     --discovery-token-ca-cert-hash sha256:6ba6e5205ac27e39e03d3b89a639ef70f6503fb877b1cf8a332b399549471740 \
+    --control-plane --certificate-key 309f945f612dd7f0d830b11868edd5135e6cf358ed503107eb645dc8d7c84405
+```
+
+## Node节点的配置
+
+```sh
+Node节点上主要部署公司的一些业务应用，生产环境中不建议Master节点部署系统组件之外的其他Pod，测试环境可以允许Master节点部署Pod以节省系统资源。
+kubeadm join 192.168.0.200:16443 --token 9zp1xe.h5kpi1b9kd5blk76     --discovery-token-ca-cert-hash sha256:6ba6e5205ac27e39e03d3b89a639ef70f6503fb877b1cf8a332b399549471740
+```
+
+## Metrics部署
+
+```sh
+在新版的Kubernetes中系统资源的采集均使用Metrics-server，可以通过Metrics采集节点和Pod的内存、磁盘、CPU和网络的使用率。
+Heapster
+更改metrics的部署文件证书，
+将metrics-server-3.6.1/metrics-server-deployment.yaml的front-proxy-ca.pem改为front-proxy-ca.crt
+```
+
+**将Master01节点的front-proxy-ca.crt复制到所有Node节点**
+
+```sh
+scp /etc/kubernetes/pki/front-proxy-ca.crt k8s-node01:/etc/kubernetes/pki/front-proxy-ca.crt
+scp /etc/kubernetes/pki/front-proxy-ca.crt k8s-node(其他节点自行拷贝):/etc/kubernetes/pki/front-proxy-ca.crt
+```
+
+**安装metrics server**
+
+```sh
+kubectl  apply -f  metrics-server-3.6.1/
+```
+
+```sh
+[root@k8s-master01 k8s-ha-install]# cd metrics-server-3.6.1/
+[root@k8s-master01 metrics-server-3.6.1]# 
+[root@k8s-master01 metrics-server-3.6.1]# ls
+aggregated-metrics-reader.yaml  auth-delegator.yaml  auth-reader.yaml  metrics-apiservice.yaml  metrics-server-deployment.yaml  metrics-server-service.yaml  resource-reader.yaml
+[root@k8s-master01 metrics-server-3.6.1]# kubectl apply -f .
+clusterrole.rbac.authorization.k8s.io/system:aggregated-metrics-reader created
+clusterrolebinding.rbac.authorization.k8s.io/metrics-server:system:auth-delegator created
+rolebinding.rbac.authorization.k8s.io/metrics-server-auth-reader created
+apiservice.apiregistration.k8s.io/v1beta1.metrics.k8s.io created
+serviceaccount/metrics-server created
+deployment.apps/metrics-server created
+service/metrics-server created
+clusterrole.rbac.authorization.k8s.io/system:metrics-server created
+clusterrolebinding.rbac.authorization.k8s.io/system:metrics-server created
+```
+
+## Dashboard部署
+
+```sh
+官方GitHub：https://github.com/kubernetes/dashboard
+
+Dashboard用于展示集群中的各类资源，同时也可以通过Dashboard实时查看Pod的日志和在容器中执行一些命令等。
+```
+
+```sh
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.3/aio/deploy/recommended.yaml
+```
+
+```sh
+更改dashboard的svc为NodePort：
+kubectl edit svc kubernetes-dashboard -n kubernetes-dashboard
+```
+
+```sh
+将ClusterIP更改为NodePort（如果已经为NodePort忽略此步骤）：
+查看端口号：
+kubectl get svc kubernates-dashboard -n kubernates-dashboard
+```
+
+```sh
+根据自己的实例端口号，通过任意安装了kube-proxy的宿主机或者VIP的IP+端口即可访问到dashboard：
+访问Dashboard：https://192.168.0.200:18282（请更改18282为自己的端口），选择登录方式为令牌（即token方式）
+```
+
+**创建管理员用户vim admin.yaml**
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding 
+metadata: 
+  name: admin-user
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+```
+
+```sh
+kubectl create -f admin.yaml -n kube-system
+```
+
+**查看token值：**
+
+```sh
+[root@k8s-master01 1.1.1]# kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+Name:         admin-user-token-r4vcp
+Namespace:    kube-system
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: admin-user
+              kubernetes.io/service-account.uid: 2112796c-1c9e-11e9-91ab-000c298bf023
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1025 bytes
+namespace:  11 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLXI0dmNwIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIyMTEyNzk2Yy0xYzllLTExZTktOTFhYi0wMDBjMjk4YmYwMjMiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06YWRtaW4tdXNlciJ9.bWYmwgRb-90ydQmyjkbjJjFt8CdO8u6zxVZh-19rdlL_T-n35nKyQIN7hCtNAt46u6gfJ5XXefC9HsGNBHtvo_Ve6oF7EXhU772aLAbXWkU1xOwQTQynixaypbRIas_kiO2MHHxXfeeL_yYZRrgtatsDBxcBRg-nUQv4TahzaGSyK42E_4YGpLa3X3Jc4t1z0SQXge7lrwlj8ysmqgO4ndlFjwPfvg0eoYqu9Qsc5Q7tazzFf9mVKMmcS1ppPutdyqNYWL62P1prw_wclP0TezW1CsypjWSVT4AuJU8YmH8nTNR1EXn8mJURLSjINv6YbZpnhBIPgUGk1JYVLcn47w
+```
+
+## 一些必须的配置更改
+
+**将Kube-proxy改为ipvs模式，因为在初始化集群的时候注释了ipvs配置，所以需要自行修改一下：**
+
+```sh
+在master01节点执行
+kubectl edit cm kube-proxy -n kube-system
+mode: “ipvs”
+```
+
+```sh
+更新Kube-Proxy的Pod：
+kubectl patch daemonset kube-proxy -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}" -n kube-system
+```
+
+```sh
+验证Kube-Proxy模式
+[root@k8s-master01 1.1.1]# curl 127.0.0.1:10249/proxyMode
+ipvs
+```
+
+### 开启健康检查
+
+在所有的master节点
+
+开启keepalived的健康检查：
+
+```sh
+[root@k8s-master01 etc]# vim /etc/keepalived
+
+[root@k8s-master01 ~]# vim /etc/keepalived/keepalived.conf 
+! Configuration File for keepalived
+global_defs {
+    router_id LVS_DEVEL
+}
+vrrp_script chk_apiserver {
+    script "/etc/keepalived/check_apiserver.sh"
+   interval 3
+    weight -5
+    fall 2  
+}
+vrrp_instance VI_1 {
+    state MASTER
+    interface ens160
+    mcast_src_ip 192.168.0.100
+    virtual_router_id 51
+    priority 100
+    advert_int 2
+    authentication {
+        auth_type PASS
+        auth_pass K8SHA_KA_AUTH
+    }
+    virtual_ipaddress {
+        192.168.0.200
+    }
+# 将此块注释打开
+    track_script {
+       chk_apiserver
+    }
+}
+```
+
+### 重启keepalived
+
+```sh
+systemctl daemon-reload
+systemctl restart keepalived
+```
+
+<b style="color:red;font-size:30px;">注意事项</b>
+
+注意：kubeadm安装的集群，证书有效期默认是一年。master节点的kube-apiserver、kube-scheduler、kube-controller-manager、etcd都是以容器运行的。可以通过kubectl get po -n kube-system查看。
+
+启动和二进制不同的是，kubelet的配置文件在/etc/sysconfig/Kubelet
+
+其他组件的配置文件在/etc/kubernetes目录下，比如kube-apiserver.yaml，该yaml文件更改后，kubelet会自动刷新配置，也就是会重启pod。不能再次创建该文件
