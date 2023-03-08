@@ -122,7 +122,7 @@ git clone https://github.com/dotbalo/k8s-ha-install.git
 
 ```sh
 curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
-yum install -y yum-utils device-mapper-persistent-data lvm2
+ 
 
 yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
@@ -183,6 +183,20 @@ yum --enablerepo=elrepo-kernel install kernel-ml kernel-ml-devel -y
 # 安装完成后reboot
 # 更改内核顺序：
 grub2-set-default  0 && grub2-mkconfig -o /etc/grub2.cfg && grubby --args="user_namespace.enable=1" --update-kernel="$(grubby --default-kernel)" && reboot
+
+
+
+1、查看当前内核
+uname -r   
+2、显示已经安装的内核
+rpm -qa | grep kernel 
+3、grub2存在的内核
+grep menuentry /boot/grub2/grub.cfg
+4、配置默认内核
+grub2-set-default "CentOS Linux (4.20.8-1.el7.elrepo.x86_64) 7 (Core)"   
+5、配置默认内核
+grub2-editenv list  
+6、reboot
 ```
 
 ###### centos 8
@@ -300,6 +314,9 @@ lsmod | grep --color=auto -e ip_vs -e nf_conntrack
 ### 安装docker
 
 ```sh
+主要安装的是集群中用到的各种组件，比如Docker-ce、Kubernetes各组件等。
+
+查看可用docker-ce版本：
 yum list docker-ce.x86_64 --showduplicates | sort -r
 wget https://download.docker.com/linux/centos/7/x86_64/edge/Packages/containerd.io-1.2.13-3.2.el7.x86_64.rpm 
 yum install containerd.io-1.2.13-3.2.el7.x86_64.rpm -y
@@ -319,6 +336,8 @@ cat > /etc/docker/daemon.json <<EOF
   "exec-opts": ["native.cgroupdriver=systemd"]
 }
 EOF
+所有节点设置开机自启动Docker：
+systemctl daemon-reload && systemctl enable --now docker
 ```
 
 ### 安装k8s组件
@@ -330,16 +349,23 @@ yum list kubeadm.x86_64 --showduplicates | sort -r
 yum install kubeadm -y
 所有节点安装指定版本k8s组件：
 yum install -y kubeadm-1.12.3-0.x86_64 kubectl-1.12.3-0.x86_64 kubelet-1.12.3-0.x86_64
+```
 
-所有节点设置开机自启动Docker：
-systemctl daemon-reload && systemctl enable --now docker
+#### 报错
+
+![](./images/1.png)
+
+#### 解决报错
+
+```sh
+ yum -y install kubernetes-cni = 0.6.0
 ```
 
 ### 配置仓库
 
 ```sh
 # 默认配置的pause镜像使用gcr.io仓库，国内可能无法访问，所以这里配置Kubelet使用阿里云的pause镜像：
-DOCKER_CGROUPS=$(docker info | grep 'Cgroup' | cut -d' ' -f4)
+DOCKER_CGROUPS=$(docker info | grep 'Cgroup' | cut -d' ' -f3)
 cat >/etc/sysconfig/kubelet<<EOF
 KUBELET_EXTRA_ARGS="--cgroup-driver=systemd --pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/google_containers/pause-amd64:3.1"
 EOF
@@ -399,9 +425,8 @@ backend k8s-master
   option tcp-check
   balance roundrobin
   default-server inter 10s downinter 5s rise 2 fall 2 slowstart 60s maxconn 250 maxqueue 256 weight 100
-  server k8s-master01	192.168.0.100:6443  check
-  server k8s-master02	192.168.0.106:6443  check
-  server k8s-master03	192.168.0.107:6443  check
+  server k8s-master01	192.168.108.50:6443  check
+  server k8s-master02	192.168.108.51:6443  check
   
 　所有Master节点配置KeepAlived，配置不一样，注意区分 
 [root@k8s-master01 pki]# vim /etc/keepalived/keepalived.conf ，注意每个节点的IP和网卡（interface参数）
@@ -426,8 +451,8 @@ interval 5
 }
 vrrp_instance VI_1 {
     state MASTER
-    interface ens160
-    mcast_src_ip 192.168.0.100
+    interface ens160# 注意更换网卡名字
+    mcast_src_ip 192.168.108.50
     virtual_router_id 51
     priority 101
 nopreempt
@@ -437,7 +462,7 @@ nopreempt
         auth_pass K8SHA_KA_AUTH
     }
     virtual_ipaddress {
-        192.168.0.200
+        192.168.108.55
     }
 #    track_script {
 #       chk_apiserver
@@ -448,6 +473,7 @@ nopreempt
 **Master02节点的配置：**
 
 ```sh
+[root@k8s-master01 ~]# vim /etc/keepalived/keepalived.conf 
 ! Configuration File for keepalived
 global_defs {
     router_id LVS_DEVEL
@@ -462,7 +488,7 @@ interval 5
 vrrp_instance VI_1 {
     state BACKUP
     interface ens160
-    mcast_src_ip 192.168.0.106
+    mcast_src_ip 192.168.108.51# 注意更换网卡名字
     virtual_router_id 51
     priority 100
 nopreempt
@@ -472,7 +498,7 @@ nopreempt
         auth_pass K8SHA_KA_AUTH
     }
     virtual_ipaddress {
-        192.168.0.200
+        192.168.108.55
     }
 #    track_script {
 #       chk_apiserver
@@ -496,7 +522,7 @@ interval 5
 }
 vrrp_instance VI_1 {
     state BACKUP
-    interface ens160
+    interface ens160 # 注意更换网卡名字
     mcast_src_ip 192.168.0.107
     virtual_router_id 51
     priority 100
@@ -567,8 +593,8 @@ chmod +x /etc/keepalived/check_apiserver.sh
 
 ```sh
 重要：如果安装了keepalived和haproxy，需要测试keepalived是否是正常的
-telnet 192.168.0.200 16443
-如果ping不通且telnet没有出现 ]，则认为VIP不可以，不可在继续往下执行，需要排查keepalived的问题，比如防火墙和selinux，haproxy和keepalived的状态，监听端口等
+telnet 192.168.108.55 16443 
+如果ping不通且telnet没有出现  "]"，则认为VIP不可以，不可在继续往下执行，需要排查keepalived的问题，比如防火墙和selinux，haproxy和keepalived的状态，监听端口等
 所有节点查看防火墙状态必须为disable和inactive：systemctl status firewalld
 所有节点查看selinux状态，必须为disable：getenforce
 master节点查看haproxy和keepalived状态：systemctl status keepalived haproxy
@@ -597,7 +623,7 @@ bootstrapTokens:
   - authentication
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 192.168.0.100
+  advertiseAddress: 192.168.108.50
   bindPort: 6443
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
@@ -608,12 +634,12 @@ nodeRegistration:
 ---
 apiServer:
   certSANs:
-  - 192.168.0.200
+  - 192.168.108.55
   timeoutForControlPlane: 4m0s
 apiVersion: kubeadm.k8s.io/v1beta2
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes
-controlPlaneEndpoint: 192.168.0.200:16443
+controlPlaneEndpoint: 192.168.108.55:16443
 controllerManager: {}
 dns:
   type: CoreDNS

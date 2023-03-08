@@ -95,3 +95,24 @@ kubectl rollout history deploy nginx --reverion=5
 kubectl scale --replicas=3 deploy nginx
 ```
 
+```sh
+kubectl get pod --namespace=kube-system
+```
+
+```sh
+kubectl describe pod coredns-5bbd96d687-hx99g --namespace=kube-system
+kubectl -n kube-flannel logs kube-flannel-ds-mpbsq
+
+nmcli connection reload
+nmcli connection up ens3
+nmcli connection down ens3
+nmcli connection down ens3 && nmcli connection up ens3
+
+
+ kubeadm token create --print-join-command
+ 
+kubeadm token create --print-join-command
+kubeadm join 192.168.108.100:6443 --token mefpp7.lebt21478dl8rijy --discovery-token-ca-cert-hash sha256:7f7461fdedf7bd7f41e839a9790b4cb1daf81ea2a7b9a0e6d80dbb3c08ebc0d7
+  --cri-socket unix:///var/run/cri-dockerd.sock
+```
+
