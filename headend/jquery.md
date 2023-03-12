@@ -1076,3 +1076,748 @@ animate(params,[speed],[easing],[fn])
 </html>
 ```
 
+## jQuery属性操作
+
+####  设置或获取元素固有属性值prop()
+
+**获取属性方法**
+
+```js
+prop("属性")
+```
+
+**设置属性语法**
+
+```js
+prop("属性", "属性值")
+```
+
+#### 设置或获取元素自定义属性值attr()
+
+**获取属性语法**
+
+```js
+attr("属性") // 类似原生的getAtrribute()
+```
+
+**设置属性语法**
+
+```js
+attr("属性","属性值")
+```
+
+#### 数据缓存data()
+
+`data()` 方法可以在指定的元素上存取数据，并不会修改DOM元素结构。一旦页面刷新，之前存放的数据将被移除。
+
+**附加数据语法**
+
+```js
+data("name","value")// 向被选元素附加数据
+```
+
+**获取数据语法**
+
+```js
+data("name") //向被选元素获取数据
+```
+
+同时，还可以读取HTML5自定义属性`data-index`，得到的是数字型
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="jquery.min.js"></script>
+</head>
+
+<body>
+    <a href="http://www.itcast.cn" title="都挺好">都挺好</a>
+    <input type="checkbox" name="" id="" checked>
+    <div index="1" data-index="2">我是div</div>
+    <span>123</span>
+    <script>
+        $(function() {
+            //1. element.prop("属性名") 获取元素固有的属性值
+            console.log($("a").prop("href"));
+            $("a").prop("title", "我们都挺好");
+            $("input").change(function() {
+                console.log($(this).prop("checked"));
+
+            });
+            // console.log($("div").prop("index"));
+            // 2. 元素的自定义属性 我们通过 attr()
+            console.log($("div").attr("index"));
+            $("div").attr("index", 4);
+            console.log($("div").attr("data-index"));
+            // 3. 数据缓存 data() 这个里面的数据是存放在元素的内存里面
+            $("span").data("uname", "andy");
+            console.log($("span").data("uname"));
+            // 这个方法获取data-index h5自定义属性 第一个 不用写data-  而且返回的是数字型
+            console.log($("div").data("index"));
+
+
+
+
+
+        })
+    </script>
+</body>
+
+</html>
+```
+
+## jQuery 内容文本值
+
+主要针对元素的内容还有表单的值操作
+
+#### 普通元素内容html()
+
+```js
+html()  // 获取元素的内容 相当于原生innerHTML
+```
+
+```js
+html("内容") //设置元素内容
+```
+
+#### 普通元素文本内容text()
+
+```js
+text() // 获取内容 相当于原生的 innerHTML
+```
+
+```js
+text("内容")
+```
+
+#### 表单的值val()
+
+```js
+val() //相当于 原生value
+```
+
+```js
+val("内容")
+```
+
+## jQuery 元素操作
+
+主要是遍历、创建、添加、删除元素
+
+#### 遍历元素
+
+```js
+$("div").each(function(index, domElement){})
+```
+
+1. `each()` 方法变量匹配的每一个元素。主要用DOM处理
+2. 里面的回调函数有2个参数 : index 是每个元素的索引号，domElement 是每隔DOM元素对象，不是jQuery对象
+3. 所以要使用jQuery方法，需要把这个dom对象转换为jQuery对象`$(domElement)`
+
+```js
+$.each(object, function(index, element){})
+```
+
+1. `$.each()` 方法可用于遍历任何对象。主要用于数据处理，比如数组，对象
+2. 里面的函数有2个参数 : index 是每个元素的索引号；element遍历内容
+
+#### 创建元素
+
+```js
+var li = $("<li></li>");
+
+element.append(li); //内部添加
+$("ul").append(li); // 内部添加 放在元素最后
+$("ul").prepend(li); // 内部添加 放在最前面
+
+// 外部添加
+element.after("内容");
+element.before("内容");
+```
+
+#### 删除元素
+
+```js
+element.remove(); //删除匹配的元素(本身)
+
+element.empty(); //删除匹配的元素集合中所有子节点
+
+element.html(""); //清空匹配的元素内容
+```
+
+## jQuery 尺寸位置操作
+
+#### jQuery尺寸
+
+| 语法                                | 用法                                                   |
+| ----------------------------------- | ------------------------------------------------------ |
+| `width()/height()`                  | 取得匹配元素宽度和高度值 只算 `width/height`           |
+| `innerWidth()/ innderHeight()`      | 取得匹配元素宽度和高度值包含`padding`                  |
+| `outerWidth()/ outerHeight()`       | 取得匹配元素宽度和高度值包含`padding、border`          |
+| `outWidth(true)/ outerHeight(true)` | 取得匹配元素宽度和高度值包含`padding、border 、margin` |
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            width: 200px;
+            height: 200px;
+            background-color: pink;
+            padding: 10px;
+            border: 15px solid red;
+            margin: 20px;
+        }
+    </style>
+    <script src="jquery.min.js"></script>
+</head>
+
+<body>
+    <div></div>
+    <script>
+        $(function() {
+            // 1. width() / height() 获取设置元素 width和height大小 
+            console.log($("div").width());
+            // $("div").width(300);
+
+            // 2. innerWidth() / innerHeight()  获取设置元素 width和height + padding 大小 
+            console.log($("div").innerWidth());
+
+            // 3. outerWidth()  / outerHeight()  获取设置元素 width和height + padding + border 大小 
+            console.log($("div").outerWidth());
+
+            // 4. outerWidth(true) / outerHeight(true) 获取设置 width和height + padding + border + margin
+            console.log($("div").outerWidth(true));
+
+
+        })
+    </script>
+</body>
+
+</html>
+```
+
+#### jQuery位置
+
+位置主要有三个 : `offset()、position()、scrollTop()/ scrollLeft()`
+
+**offset() 设置或获取元素偏移**
+
+1. `offset()` 方法设置或返回被选元素相对于文档的偏移坐标，跟父级没有关系。
+2. 该方法有两个属性`left、top` ，`offset().top` 用于获取距离文档顶部的距离，`offset().left` 用于获取距离文档左侧的距离。
+3. 可以设置元素的偏移 :  `offset({top:10, left:30});`
+
+**position() 获取元素偏移**
+
+1. `position()` 方法用于返回被选元素相对于带有定位的父级偏移坐标，如果父级都没有定位，则以文档为准。
+2. 这个方法只能获取不能设置。
+
+**scrollTop()/scroLeft() 设置或获取元素被卷曲的头部和左侧**
+
+* `scrollTop()` 方法设置或返回被选元素被卷去的头部。
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        body {
+            height: 2000px;
+        }
+        
+        .back {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            background-color: pink;
+            right: 30px;
+            bottom: 100px;
+            display: none;
+        }
+        
+        .container {
+            width: 900px;
+            height: 500px;
+            background-color: skyblue;
+            margin: 400px auto;
+        }
+    </style>
+    <script src="jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="back">返回顶部</div>
+    <div class="container">
+    </div>
+    <script>
+        $(function() {
+            $(document).scrollTop(100);
+            // 被卷去的头部 scrollTop()  / 被卷去的左侧 scrollLeft()
+            // 页面滚动事件
+            var boxTop = $(".container").offset().top;
+            $(window).scroll(function() {
+                // console.log(11);
+                console.log($(document).scrollTop());
+                if ($(document).scrollTop() >= boxTop) {
+                    $(".back").fadeIn();
+                } else {
+                    $(".back").fadeOut();
+                }
+            });
+            // 返回顶部
+            $(".back").click(function() {
+                // $(document).scrollTop(0);
+                $("body, html").stop().animate({
+                    scrollTop: 0
+                });
+                // $(document).stop().animate({
+                //     scrollTop: 0
+                // }); 不能是文档而是 html和body元素做动画
+            })
+        })
+    </script>
+</body>
+
+</html>
+```
+
+## jQuery 事件
+
+#### jQuery事件注册
+
+**单个事件注册**
+
+```js
+element.事件(function(){})
+```
+
+```js
+$("div").click(function(){})
+```
+
+其他事件和原生基本一致。
+
+如`mouseover、mouseout、blur、focus、change、keydown、keyup、resize、scroll`
+
+#### 事件处理on() 绑定事件
+
+```js
+element.on(events,[seletor], fn)
+```
+
+1. `events`  一个或多个用空格分隔的事件类型，如 `click、keydown`
+2. `selector` 元素的子元素选择器
+3. `fn`  回调函数 即绑定在元素身上的侦听函数
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+        
+        .current {
+            background-color: purple;
+        }
+    </style>
+    <script src="jquery.min.js"></script>
+</head>
+
+<body>
+    <div></div>
+    <ul>
+        <li>我们都是好孩子</li>
+        <li>我们都是好孩子</li>
+        <li>我们都是好孩子</li>
+        <li>我们都是好孩子</li>
+        <li>我们都是好孩子</li>
+    </ul>
+    <ol>
+
+    </ol>
+    <script>
+        $(function() {
+            // 1. 单个事件注册
+            // $("div").click(function() {
+            //     $(this).css("background", "purple");
+            // });
+            // $("div").mouseenter(function() {
+            //     $(this).css("background", "skyblue");
+            // });
+
+            // 2. 事件处理on
+            // (1) on可以绑定1个或者多个事件处理程序
+            // $("div").on({
+            //     mouseenter: function() {
+            //         $(this).css("background", "skyblue");
+            //     },
+            //     click: function() {
+            //         $(this).css("background", "purple");
+            //     },
+            //     mouseleave: function() {
+            //         $(this).css("background", "blue");
+            //     }
+            // });
+            $("div").on("mouseenter mouseleave", function() {
+                $(this).toggleClass("current");
+            });
+            // (2) on可以实现事件委托（委派）
+            // $("ul li").click();
+            $("ul").on("click", "li", function() {
+                alert(11);
+            });
+            // click 是绑定在ul 身上的，但是 触发的对象是 ul 里面的小li
+            // (3) on可以给未来动态创建的元素绑定事件
+            // $("ol li").click(function() {
+            //     alert(11);
+            // })
+            $("ol").on("click", "li", function() {
+                alert(11);
+            })
+            var li = $("<li>我是后来创建的</li>");
+            $("ol").append(li);
+        })
+    </script>
+</body>
+</html>
+```
+
+#### 发布微博案例
+
+```html
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+        
+        ul {
+            list-style: none
+        }
+        
+        .box {
+            width: 600px;
+            margin: 100px auto;
+            border: 1px solid #000;
+            padding: 20px;
+        }
+        
+        textarea {
+            width: 450px;
+            height: 160px;
+            outline: none;
+            resize: none;
+        }
+        
+        ul {
+            width: 450px;
+            padding-left: 80px;
+        }
+        
+        ul li {
+            line-height: 25px;
+            border-bottom: 1px dashed #cccccc;
+            display: none;
+        }
+        
+        input {
+            float: right;
+        }
+        
+        ul li a {
+            float: right;
+        }
+    </style>
+    <script src="jquery.min.js"></script>
+    <script>
+        $(function() {
+            // 1.点击发布按钮， 动态创建一个小li，放入文本框的内容和删除按钮， 并且添加到ul 中
+            $(".btn").on("click", function() {
+                var li = $("<li></li>");
+                li.html($(".txt").val() + "<a href='javascript:;'> 删除</a>");
+                $("ul").prepend(li);
+                li.slideDown();
+                $(".txt").val("");
+            })
+
+            // 2.点击的删除按钮，可以删除当前的微博留言li
+            // $("ul a").click(function() {  // 此时的click不能给动态创建的a添加事件
+            //     alert(11);
+            // })
+            // on可以给动态创建的元素绑定事件
+            $("ul").on("click", "a", function() {
+                $(this).parent().slideUp(function() {
+                    $(this).remove();
+                });
+            })
+
+        })
+    </script>
+</head>
+
+<body>
+    <div class="box" id="weibo">
+        <span>微博发布</span>
+        <textarea name="" class="txt" cols="30" rows="10"></textarea>
+        <button class="btn">发布</button>
+        <ul>
+        </ul>
+    </div>
+</body>
+
+</html>
+```
+
+#### 事件处理off() 解绑事件
+
+`off()` 方法可以移除通过 `on()` 方法添加的事件处理程序。
+
+```js
+$("p").off() //解绑p元素所有事件处理程序
+$("p").off("click") //解绑p元素上面的点击事件
+$("ul").off("click", "li") // 解绑事件委托
+```
+
+如果有的事件只想触发一次，可以使用`one()` 来绑定事件
+
+#### 自动触发trigger()
+
+有些事件希望自动触发，比如轮播图自动播放功能跟点击右侧按钮一致。可以利用定时器自动触发右侧按钮点击事件，不必鼠标点击触发。
+
+```js
+element.click() // 第一种简写形式
+```
+
+```js
+element.trigger("type") // 第二种自动触发模式
+```
+
+```js
+element.triggerHandler("type")
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        div {
+            width: 100px;
+            height: 100px;
+            background-color: pink;
+        }
+    </style>
+    <script src="jquery.min.js"></script>
+    <script>
+        $(function() {
+            $("div").on("click", function() {
+                alert(11);
+            });
+
+            // 自动触发事件
+            // 1. 元素.事件()
+            // $("div").click();会触发元素的默认行为
+            // 2. 元素.trigger("事件")
+            // $("div").trigger("click");会触发元素的默认行为
+            $("input").trigger("focus");
+            // 3. 元素.triggerHandler("事件") 就是不会触发元素的默认行为
+            $("div").triggerHandler("click");
+            $("input").on("focus", function() {
+                $(this).val("你好吗");
+            });
+            // $("input").triggerHandler("focus");
+
+        });
+    </script>
+</head>
+
+<body>
+    <div></div>
+    <input type="text">
+</body>
+
+</html>
+```
+
+#### jQuery 事件对象
+
+事件对象被触发，就会有事件对象的产生。
+
+```js
+element.on(events,[seletor],function(event){})
+```
+
+阻止默认行为 : `evnt.preventDefault()` 或者 `return false`
+
+阻止冒泡 : `event.stopPropagation()`
+
+## jQuery 其他方法
+
+#### jQuery拷贝对象
+
+如果想要把某个对象拷贝(合并)给另一个对象使用，此时可以使用`$.extend()` 方法
+
+```js
+$.extend([deep],target,object1,[objectN])
+```
+
+1. `deep` : 如果设为true为深拷贝，默认为false浅拷贝
+2. `target ` : 要拷贝的目标对象
+3. `object1 `： 待拷贝到第一个对象的对象
+4. `obejctN` : 待拷贝到第n个对象的对象
+5. 浅拷贝是把被拷贝的对象复杂数据类型中的地址拷贝给目标对象，修改目标对象会影响被拷贝对象
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="jquery.min.js"></script>
+    <script>
+        $(function() {
+            // var targetObj = {};
+            // var obj = {
+            //     id: 1,
+            //     name: "andy"
+            // };
+            // // $.extend(target, obj);
+            // $.extend(targetObj, obj);
+            // console.log(targetObj);
+            // var targetObj = {
+            //     id: 0
+            // };
+            // var obj = {
+            //     id: 1,
+            //     name: "andy"
+            // };
+            // // $.extend(target, obj);
+            // $.extend(targetObj, obj);
+            // console.log(targetObj); // 会覆盖targetObj 里面原来的数据
+            var targetObj = {
+                id: 0,
+                msg: {
+                    sex: '男'
+                }
+            };
+            var obj = {
+                id: 1,
+                name: "andy",
+                msg: {
+                    age: 18
+                }
+            };
+            // // $.extend(target, obj);
+            // $.extend(targetObj, obj);
+            // console.log(targetObj); // 会覆盖targetObj 里面原来的数据
+            // // 1. 浅拷贝把原来对象里面的复杂数据类型地址拷贝给目标对象
+            // targetObj.msg.age = 20;
+            // console.log(targetObj);
+            // console.log(obj);
+            // 2. 深拷贝把里面的数据完全复制一份给目标对象 如果里面有不冲突的属性,会合并到一起 
+            $.extend(true, targetObj, obj);
+            // console.log(targetObj); // 会覆盖targetObj 里面原来的数据
+            targetObj.msg.age = 20;
+            console.log(targetObj); // msg :{sex: "男", age: 20}
+            console.log(obj);
+
+
+
+
+        })
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
+```
+
+#### jQuery多库共存
+
+1. 把里面的 `$` 符号统一改为`jQuery` 。比如`jQuery("div")`
+2. `jQuery` 变量规定新的名称 : `$.noConflict() `
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="jquery.min.js"></script>
+    <script>
+        $(function() {
+            function $(ele) {
+                return document.querySelector(ele);
+            }
+            console.log($("div"));
+            // 1. 如果$ 符号冲突 我们就使用 jQuery
+            jQuery.each();
+            // 2. 让jquery 释放对$ 控制权 让用自己决定
+            var suibian = jQuery.noConflict();
+            console.log(suibian("span"));
+            suibian.each();
+        })
+    </script>
+</head>
+
+<body>
+    <div></div>
+    <span></span>
+</body>
+
+</html>
+```
+
+#### jQuery插件
+
+```http
+1. jQuery插件库  http://www.jq22.com/
+2. jQuery之家   http://www.htmlleaf.com/
+```
+
