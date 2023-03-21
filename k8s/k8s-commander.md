@@ -1,10 +1,16 @@
+## 获取节点并且和label
+
 ```sh
 kubectl get node --show-label
 ```
 
+## 获取默认名称空间的Pod
+
 ```sh
 kubectl get po
 ```
+
+## 从yaml中新建Pod
 
 ```sh
 kubectl create -f pod.yaml
@@ -161,5 +167,25 @@ KillMode=process
 
 [Install]
 WantedBy=multi-user.target
+```
+
+```sh
+kubectl get nodes -l gpu=true
+```
+
+```sh
+kubectl delete pod -l version=canary  # 删除所有版本为canary的pod
+```
+
+```sh
+kubectl create namespace zzz
+```
+
+```sh
+kubectl get pods -L app
+```
+
+```sh
+kubectl exec kubia-pc9qz env 
 ```
 
