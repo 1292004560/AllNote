@@ -170,14 +170,12 @@ WantedBy=multi-user.target
 ```
 
 ```sh
-<<<<<<< HEAD
 kubeadm init --image-repository registry.aliyuncs.com/google_containers --kubernetes-version=v1.26.2 --pod-network-cidr=10.244.0.0/16 --cri-socket /var/run/cri-dockerd.sock
 
 ```
 
 ```sh
 wget https://docs.projectcalico.org/manifests/calico.yaml
-=======
 kubectl get nodes -l gpu=true
 ```
 
@@ -195,6 +193,5 @@ kubectl get pods -L app
 
 ```sh
 kubectl exec kubia-pc9qz env 
->>>>>>> origin/master
 ```
 
