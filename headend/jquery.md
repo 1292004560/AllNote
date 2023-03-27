@@ -128,11 +128,9 @@ $('div').css('属性','值');
             margin: 0;
             padding: 0;
         }
-        
         li {
             list-style-type: none;
         }
-        
         a {
             text-decoration: none;
             font-size: 14px;

@@ -163,3 +163,12 @@ KillMode=process
 WantedBy=multi-user.target
 ```
 
+```sh
+kubeadm init --image-repository registry.aliyuncs.com/google_containers --kubernetes-version=v1.26.2 --pod-network-cidr=10.244.0.0/16 --cri-socket /var/run/cri-dockerd.sock
+
+```
+
+```sh
+wget https://docs.projectcalico.org/manifests/calico.yaml
+```
+
