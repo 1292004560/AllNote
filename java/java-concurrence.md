@@ -668,9 +668,9 @@ public Task getNextTask(BlockingQueue<Task> queue){
 
 ## volatile重排序规则表
 
-* 当第二个操作是volatile写时，不管第一个操作是什么，都不能重排序。这个规则确保volatile写之前的操作不会被编译器重排序到volatile写之后
-* 当第一个操作是volatile读时，不管第二个操作是什么，都不能重排序。这个规则确保volatile读之后的操作不会被编译器重排序到volatile读之前
-* 当第一个操作是volatile写，第二个操作是volatile读时，不能重排序
+* <span style="color:red"> 当第二个操作是volatile写时，不管第一个操作是什么，都不能重排序。这个规则确保volatile写之前的操作不会被编译器重排序到volatile写之后</span>
+* <span style="color:red">当第一个操作是volatile读时，不管第二个操作是什么，都不能重排序。这个规则确保volatile读之后的操作不会被编译器重排序到volatile读之前</span>
+* <span style="color:red">当第一个操作是volatile写，第二个操作是volatile读时，不能重排序</span>
 
 ## `JMM`内存屏障插入策略
 
@@ -678,3 +678,17 @@ public Task getNextTask(BlockingQueue<Task> queue){
 *  在每个volatile写操作的后面插入一个`StoreLoad`屏障。
 * 在每个volatile读操作的后面插入一个`LoadLoad`屏障。
 * 在每个volatile读操作的后面插入一个`LoadStore`屏障。
+
+## final域的重排序规则
+
+* 在构造函数内对一个final域的写入，与随后把这个被构造对象的引用赋值给一个引用变量，这两个操作之间不能重排序
+* 初次读一个包含final域的对象的引用，与随后初次读这个final域，这两个操作之间不能重排序
+
+## happens-before规则
+
+* 程序顺序规则：一个线程中的每个操作，happens-before于该线程中的任意后续操作
+* 监视器锁规则：对一个锁的解锁，happens-before于随后对这个锁的加锁
+* volatile变量规则：对一个volatile域的写，happens-before于任意后续对这个volatile域的读
+* 传递性：如果A happens-before B，且B happens-before C，那么A happens-before C
+* start()规则：如果线程A执行操作`ThreadB.start()`（启动线程B），那么A线程的`ThreadB.start()`操作happens-before于线程B中的任意操作
+* join()规则：如果线程A执行操作`ThreadB.join()`并成功返回，那么线程B中的任意操作happens-before于线程A从`ThreadB.join()`操作成功返回
