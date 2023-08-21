@@ -122,3 +122,38 @@ insert into ipdb2 select ('[' || ip_begin || ',' || ip_end || ']') ::inetrange, 
 
 ```
 
+```sql
+CREATE TABLE persons (
+  name varchar(40),
+  age int CHECK (age >= 0 and age <=150),
+  sex boolean
+);
+CREATE TABLE persons (
+  name varchar(40),
+  age int CONSTRAINT check_age CHECK (age >= 0 and age <=150),
+  sex boolean
+);
+
+CREATE TABLE books (
+  book_no integer,
+  name text,
+  price numeric CHECK (price > 0),
+  discounted_price numeric CHECK (discounted_price > 0),
+  CHECK (price > discounted_price)
+);
+
+CREATE TABLE class(
+      class_no int primary key, 
+      class_name varchar(40)
+);
+CREATE TABLE student(
+      student_no int primary key, 
+      student_name varchar(40), 
+      age int, 
+      class_no int REFERENCES class(class_no)
+);
+
+ALTER TABLE class ADD COLUMN class_teacher varchar(40);
+
+```
+
