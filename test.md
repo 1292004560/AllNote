@@ -1,5 +1,3 @@
-
-
 ## requests库说明
 
 ```python
@@ -151,3 +149,6 @@ class TestApi(object):
 * 原因 : 类变量不能跨py文件使用
 * 统一管理中间变量
 * 什么时候清空：
+
+
+

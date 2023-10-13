@@ -92,7 +92,7 @@ Spring版本：5.3.1
 
 注：由于 Maven 的传递性，我们不必将所有需要的包全部配置依赖，而是配置最顶端的依赖，其他靠传递性导入。
 
-![images](img\img001.png)
+![images](img/img001.png)
 
 ### 3、配置web.xml
 

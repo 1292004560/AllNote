@@ -13,8 +13,8 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "work/i2infomation2/script.md",
-                "mode": "preview",
+                "file": "go/go有疑问的代码.md",
+                "mode": "source",
                 "source": false
               }
             }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "work/i2infomation2/script.md",
+                "file": "go/go有疑问的代码.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "work/i2infomation2/script.md",
+                "file": "go/go有疑问的代码.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "work/i2infomation2/script.md"
+                "file": "go/go有疑问的代码.md"
               }
             }
           }
@@ -138,6 +138,7 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "obsidian-excalidraw-plugin:Create new drawing": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
@@ -148,7 +149,9 @@
   },
   "active": "25aff3318af80e0c",
   "lastOpenFiles": [
+    "c:c++/CLanguage.md",
     "work/i2infomation2/定制化测试文档/expect.md",
+    "spring/Springboot.md",
     "work/i2infomation2/script.md",
     "redis/redis-basis.md",
     "java/java-concurrence.md",

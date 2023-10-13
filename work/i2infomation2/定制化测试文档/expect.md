@@ -26,4 +26,3 @@ set                 定义变量
 puts                输出变量
 set timeout         设置超时时间
 ```
-

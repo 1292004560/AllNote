@@ -965,3 +965,5 @@ systemctl restart keepalived
 启动和二进制不同的是，kubelet的配置文件在/etc/sysconfig/Kubelet
 
 其他组件的配置文件在/etc/kubernetes目录下，比如kube-apiserver.yaml，该yaml文件更改后，kubelet会自动刷新配置，也就是会重启pod。不能再次创建该文件
+
+
