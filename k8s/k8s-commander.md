@@ -16,22 +16,26 @@ kubectl get po
 kubectl create -f pod.yaml
 ```
 
+## 显示标签
 ```sh
 kubectl get po --show-label
 ```
 
+## 删除pod
 ```sh
 kubectl delete po nginx
 ```
 
+## 查看pod日志
 ```sh
 kubectl logs -f nginx
 ```
 
+## 从指定命名空间中删除pod
 ```sh
 kubectl delete po nginx -n kube-pubic  
 ```
-
+## 从指定命名空间中获取deployment
 ```sh
 kubectl get deployment -n kube-system
 ```
@@ -39,19 +43,19 @@ kubectl get deployment -n kube-system
 ```sh
 kubectl edit coredns -n kube-system
 ```
-
+## 以yaml方式获取pod信息
 ```sh
 kubectl get po -oyaml
 ```
-
+## 描述pod信息
 ```sh
 kubectl describe po nginx
 ```
-
+## 进入pod内部
 ```sh
 kubectl exec -it nginx -- sh
 ```
-
+## 删除以ymal方式创建的pod
 ```sh
 kubectl delete -f pod.yaml
 ```
@@ -60,6 +64,7 @@ kubectl delete -f pod.yaml
 time kubectl delete po nginx
 ```
 
+## 更换deployment
 ```sh
 kubectl replace -f nginx-deploy.yaml
 ```
@@ -79,7 +84,7 @@ kubectl set image deploy nginx nginx=nginx:2.1 --record
 ```sh
 kubectl rollout history deploy nginx
 ```
-
+## 回滚到上个版本
 ```sh
 # 回滚到上个版本
 kubectl rollout undo deploy nginx
@@ -90,12 +95,12 @@ kubectl get po
 ```sh
 kubectl get deploy nginx -oyaml | grep nginx
 ```
-
+## 查看指定版本的详细信息
 ```sh
 # 查看指定版本的详细信息
 kubectl rollout history deploy nginx --reverion=5
 ```
-
+## 扩容
 ```sh
 # 扩容
 kubectl scale --replicas=3 deploy nginx
@@ -178,7 +183,7 @@ kubeadm init --image-repository registry.aliyuncs.com/google_containers --kubern
 wget https://docs.projectcalico.org/manifests/calico.yaml
 kubectl get nodes -l gpu=true
 ```
-
+## 删除所有版本为canary的pod
 ```sh
 kubectl delete pod -l version=canary  # 删除所有版本为canary的pod
 ```

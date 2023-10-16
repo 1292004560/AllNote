@@ -79,7 +79,7 @@
 7. **_任意单个字符** 。
 8. **\ 用来转义   escape  也用来转义**  。
 9. **SELECT last_name FROM employees  WHERE last_name LIKE '_$_%' ESCAPE '$';**
-10. **SELECT * FROM employees WHEREemployee_id BETWEEN 100 AND 120;**
+10. **SELECT * FROM employees WHERE employee_id BETWEEN 100 AND 120;**
 11. 查询工种编号是IT_PRIO、AD_VP、其中的员工名和工种编号 **SELECT  last_name ,job_id FROM employees WHERE job_id  IN('IT_PROT','AD_VP');** 。
 12. **in 里面不能用通配符** 。
 13. 查询没有奖金的员工名和奖金率 **SELECT last_name,commission_pct FROM employees WHERE  commission_pct IS NULL;** 。
