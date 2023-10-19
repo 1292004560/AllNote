@@ -32,6 +32,8 @@ func getData(ch chan string) {
 }
 ```
 
+
+
 ```go
 package main
 
@@ -62,6 +64,8 @@ func getData(ch chan string) {
 	}
 }
 ```
+
+## 质数筛
 
 ```go
 package main

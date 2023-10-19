@@ -412,21 +412,21 @@ NAME               READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES   
 nginx-deployment   3/3     3            3           97m   nginx        nginx:1.7.9   app=nginx
 ```
 
-* NAME： Deployment名称
+* `NAME`： Deployment名称
 
-* READY：Pod的状态，已经Ready的个数
+* `READY`：Pod的状态，已经Ready的个数
 
-* UP-TO-DATE：已经达到期望状态的被更新的副本数
+* `UP-TO-DATE`：已经达到期望状态的被更新的副本数
 
-* AVAILABLE：已经可以用的副本数
+* `AVAILABLE`：已经可以用的副本数
 
-* AGE：显示应用程序运行的时间
+* `AGE`：显示应用程序运行的时间
 
-* CONTAINERS：容器名称
+* `CONTAINERS`：容器名称
 
-* IMAGES：容器的镜像
+* `IMAGES`：容器的镜像
 
-* SELECTOR：管理的Pod的标签
+* `SELECTOR`：管理的Pod的标签
 
 ### Deployment的更新
 
