@@ -831,7 +831,7 @@ kubernetes-dashboard   dashboard-metrics-scraper-7bc864c59-wfpjt   1/1     Runni
 kubernetes-dashboard   kubernetes-dashboard-6c7ccbcf87-fdd2r       1/1     Running   0               28h
 ```
 
-## Label和 Selector
+## `Label`和`Selector`
 
 Label：对k8s中各种资源进行分类、分组，添加一个具有特别属性的一个标签
 
