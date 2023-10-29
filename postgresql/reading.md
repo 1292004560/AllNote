@@ -1,4 +1,4 @@
-```
+```shell
 groupadd -g 701 postgres
 useradd -g 701 -u 701 -s /bin/bash -m postgres
 
@@ -13,7 +13,7 @@ pg_ctl -D /home/postgres/pgdata -l logfile start
 unix_socket_directories = '/tmp'
 ```
 
-```
+```sql
 CREATE TABLE score (
 student_name varchar(40),
 chinese_score int,
@@ -42,7 +42,7 @@ INSERT INTO student VALUES(8, '张四', 14, 4);
 
 ```
 
-```
+```sql
 子查询
 
   当一个查询是另一个查询的条件时，称之为子查询。主要有4种语法的子查询：
