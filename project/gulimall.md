@@ -292,11 +292,11 @@ public class LIstValueConstraintValidator implements ConstraintValidator<ListVal
 
 **SPU**:**Standard Product Unit**(标准化产品单元) 是商品信息聚合的最小单位，是一组可复用、易检索的标准化信息的集合，该集合描述了一 个产品的特性。
 
-iphoneX 是 SPU 
+IphoneX 是 SPU 
 
- MI 8 是 SPU 
+MI 8 是 SPU 
 
-iphoneX 64G 黑曜石 是 SKU 
+IphoneX 64G 黑曜石 是 SKU 
 
 MI8 8+64G+黑色 是 SKU
 
