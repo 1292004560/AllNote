@@ -87,7 +87,7 @@ type key # 返回key的类型
 
 ### 案例
 
-```sh
+```
 keys * # 查看当前库所有的key
 exists key # 判断某个key是否存在
 type key # 查看你的key是什么类型
