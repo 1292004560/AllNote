@@ -555,3 +555,51 @@ min.o:min.c                                #递归的执行
 8. bt查看程序的堆栈。
 9. f  1 跳转到栈编号为一的函数中。
 10. q退出调试。
+
+```shell
+cloc 
+关键字搜索  set key
+
+ps -ef |grep redis
+gdb -p 进程号
+b dict.c:744
+bt
+grep -ir setkey 
+```
+
+
+
+
+
+## gcc 常用选项
+
+```sh
+gcc -E test.c -O test.i # 预处理，处理 #开头的
+```
+
+```sh
+gcc -S test.c -O test.s # 汇编
+```
+
+```sh
+gcc -c test.c -o test.o # 把c文件变成二进制文件
+```
+
+```sh
+gcc pthread.c -o pthred -lpthred # 链接库的名字 编译器会自动去寻找libpthread.so
+```
+
+```sh
+gcc hello.c -o hello -ltest -L . # 指定目录库文件
+```
+
+```sh
+gcc hello.c -O hello -I .. # 头文件的路径
+```
+
+```sh
+gcc hello.c -DHELLO
+```
+
+
+

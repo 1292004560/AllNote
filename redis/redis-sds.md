@@ -486,7 +486,7 @@ static inline size_t sdsTypeMaxSize(char type) {
   - `sizeof(struct sdshdr##T)`: 计算 `struct sdshdr##T` 的大小，即结构体的字节大小。
   - `(s)-(sizeof(struct sdshdr##T))`: 将指针 `s` 向前移动结构体大小的字节数。这样，`sh` 将指向 `s` 所在内存块的开头，这个内存块被认为包含了 `sdshdr` 结构体的头部。
 
-## 获取sds长度->`sdslen`
+## 获取sds长度:`sdslen`
 
 ```C
 static inline size_t sdslen(const sds s) {
@@ -512,7 +512,7 @@ static inline size_t sdslen(const sds s) {
 
 ![sds06](images/sds06.png)
 
-## 获取sds的未使用的空间->`sdsavail`
+## 获取sds的未使用的空间:`sdsavail`
 
 ```C
 static inline size_t sdsavail(const sds s) {
@@ -546,7 +546,7 @@ static inline size_t sdsavail(const sds s) {
 }
 ```
 
-## 设置长度->`sdssetlen`
+## 设置长度:`sdssetlen`
 
 ```c
 static inline void sdssetlen(sds s, size_t newlen) {
@@ -574,7 +574,7 @@ static inline void sdssetlen(sds s, size_t newlen) {
 }
 ```
 
-## 将长度加`inc`
+## 将长度加inc:`sdsinclen`
 
 ```c
 static inline void sdsinclen(sds s, size_t inc) {
@@ -603,7 +603,7 @@ static inline void sdsinclen(sds s, size_t inc) {
 }
 ```
 
-## 获取总长度->`sdsalloc`
+## 获取总长度:`sdsalloc`
 
 ```c
 /* sdsalloc() = sdsavail() + sdslen() */
@@ -625,7 +625,7 @@ static inline size_t sdsalloc(const sds s) {
 }
 ```
 
-## 设置新的总长度->`sdssetalloc`
+## 设置新的总长度:`sdssetalloc`
 
 ```c
 static inline void sdssetalloc(sds s, size_t newlen) {
@@ -730,7 +730,7 @@ sds sdscatprintf(sds s, const char *fmt, ...);
 7. #endif: 结束条件编译块。
 ```
 
-## 获取各种sdshr的大小->`sdsHdrSize`
+## 获取各种sdshr的大小:sdsHdrSize`
 
 ```c
 static inline int sdsHdrSize(char type) {
@@ -750,7 +750,7 @@ static inline int sdsHdrSize(char type) {
 }
 ```
 
-## 根据sds长度获取类型->`sdsReqType`
+## 根据sds长度获取类型:`sdsReqType`
 
 ```C
 static inline char sdsReqType(size_t string_size) {
@@ -772,7 +772,7 @@ static inline char sdsReqType(size_t string_size) {
 
 
 
-## 新建一个长度为initlen的sds->`sdsnewlen`
+## 新建一个长度为initlen的sds:`sdsnewlen`
 
 ```c
 void * sh;
@@ -839,7 +839,7 @@ void * sh;
 }
 ```
 
-## 扩充空间->`sdsMakeRoomFor`
+## 扩充空间:`sdsMakeRoomFor`
 
 ```C
 sds sdsMakeRoomFor(sds s, size_t addlen){
@@ -894,7 +894,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen){
 }
 ```
 
-## 释放空闲空间->`sdsRemoveFreeSpace`
+## 释放空闲空间:`sdsRemoveFreeSpace`
 
 ```C
 sds sdsRemoveFreeSpace(sds s){
@@ -932,7 +932,489 @@ sds sdsRemoveFreeSpace(sds s){
 }
 ```
 
+## 增加长度:`sdsIncrLen`
 
+```c
+void sdsIncrLen(sds s, ssize_t incr) {
+  unsigned char flags = s[-1];
+
+  size_t len;
+  switch (flags & SDS_TYPE_MASK) {
+    case SDS_TYPE_5: {
+      unsigned char *fp = ((unsigned char *) s) - 1;
+      /* 计算出 SDS 的首地址前一个字节的地址。这个字节用来存储 SDS 类型和长度信息。*/
+      unsigned char oldlen = SDS_TYPE_5_LEN(flags);
+      /*通过宏 SDS_TYPE_5_LEN 提取出当前 SDS 的长度信息。*/
+      assert((incr > 0 && oldlen + incr < 32) || (incr < 0 && oldlen >= (unsigned int) (-incr)));
+      /* 这里的 oldlen + incr < 32 表示在 SDS 类型为 SDS_TYPE_5 时，
+       * 增加字符串长度 incr 后，新的长度不能超过 32。这是因为 SDS_TYPE_5 类型的字符串长度是用 5 个比特位来表示，
+       * 最大值是 31（2^5 - 1），所以不能超过 32*/
+      *fp = SDS_TYPE_5 | ((oldlen + incr) << SDS_TYPE_BITS);
+      /* 低三位表示类型，高5位表示长度，将表示长度的字节移到合适的位置，然后将表示类型的字节和长度的字节整合到一起*/
+      len = oldlen + incr;
+      break;
+    }
+    case SDS_TYPE_8: {
+      SDS_HDR_VAR(8, s); // sdshdr8 *sh = (void*)((s)-(sizeof(struct sdshdr8)))
+      assert((incr >= 0 && sh->alloc - sh->len >= incr) || (incr < 0 && sh->len >= (unsigned int) (-incr)));
+      len = (sh->len += incr);
+      break;
+    }
+    case SDS_TYPE_16: {
+      SDS_HDR_VAR(16, s);
+      assert((incr >= 0 && sh->alloc - sh->len >= incr) || (incr < 0 && sh->len >= (unsigned int) (-incr)));
+      len = (sh->len += incr);
+      break;
+    }
+    case SDS_TYPE_32: {
+      SDS_HDR_VAR(32, s);
+      assert(
+          (incr >= 0 && sh->alloc - sh->len >= (unsigned int) incr) || (incr < 0 && sh->len >= (unsigned int) (-incr)));
+      len = (sh->len += incr);
+      break;
+    }
+    case SDS_TYPE_64: {
+      SDS_HDR_VAR(64, s);
+      assert((incr >= 0 && sh->alloc - sh->len >= (uint64_t) incr) || (incr < 0 && sh->len >= (uint64_t) (-incr)));
+      len = (sh->len += incr);
+      break;
+    }
+    default: len = 0; /* Just to avoid compilation warnings. */
+  }
+  s[len] = '\0';
+}
+```
+
+## 将指定长度的字符串追加到一个SDS对象末尾
+
+```c
+sds sdscatlen(sds s, const void *t, size_t len) {
+  size_t curlen = sdslen(s);
+
+  s = sdsMakeRoomFor(s,len); //扩展空间
+  if (s == NULL) return NULL;
+  memcpy(s+curlen, t, len);  // 将内容追加到sds对象末尾
+  sdssetlen(s, curlen+len);  // 更新长度
+  s[curlen+len] = '\0';
+  return s;
+}
+```
+
+## 将`long long` 转为字符串
+
+```C
+#define SDS_LLSTR_SIZE 21
+int sdsll2str(char *s, long long value) {
+    char *p, aux;
+    unsigned long long v;
+    size_t l;
+
+    /* Generate the string representation, this method produces
+     * an reversed string. */
+    if (value < 0) {
+        /* Since v is unsigned, if value==LLONG_MIN then
+         * -LLONG_MIN will overflow. */
+        if (value != LLONG_MIN) {
+            v = -value;
+        } else {
+            v = ((unsigned long long)LLONG_MAX) + 1;
+        }
+    } else {
+        v = value;
+    }
+
+    p = s;
+    do {
+        *p++ = '0'+(v%10);
+        v /= 10;
+    } while(v);
+    if (value < 0) *p++ = '-';
+
+    /* Compute length and add null term. */
+    l = p-s;
+    *p = '\0';
+
+    /* Reverse the string. */
+    p--;
+    while(s < p) {
+        aux = *s;
+        *s = *p;
+        *p = aux;
+        s++;
+        p--;
+    }
+    return l;
+}
+
+```
+
+## 将无符号的 `long long` 转为字符串
+
+```C
+/* Identical sdsll2str(), but for unsigned long long type. */
+int sdsull2str(char *s, unsigned long long v) {
+    char *p, aux;
+    size_t l;
+
+    /* Generate the string representation, this method produces
+     * an reversed string. */
+    p = s;
+    do {
+        *p++ = '0'+(v%10);
+        v /= 10;
+    } while(v);
+
+    /* Compute length and add null term. */
+    l = p-s;
+    *p = '\0';
+
+    /* Reverse the string. */
+    p--;
+    while(s < p) {
+        aux = *s;
+        *s = *p;
+        *p = aux;
+        s++;
+        p--;
+    }
+    return l;
+}
+
+```
+
+## C 语言处理可变参数
+
+```C
+#include<stdarg.h>
+va_start(ap, fmt) // ：初始化 ap，使其指向参数列表中的第一个可变参数。
+va_arg(ap, type)  // ：返回 ap 指向的当前参数，并将 ap 移动到下一个参数的位置。
+va_end(ap)        // ：结束对参数的访问。
+va_copy(cpy,ap)
+/* va_list 类型的参数，用于访问格式化字符串中的可变数量的参数*/
+```
+
+## SDS对象格式化处理
+
+```C
+sds sdscatvpritf(sds s, const char *fmt, va_list ap){
+  va_list cpy;
+  char staticbuf[1024], *buf = staticbuf, *t;
+  size_t buflen = strlen(fmt) * 2;
+  int bufstrlen;
+  /* We try to start using a static buffer for speed.
+     * If not possible we revert to heap allocation. */
+  /*
+   * 声明一个静态字符数组 staticbuf，作为初始的字符缓冲区。
+   * 然后声明一个字符指针 buf，初始指向 staticbuf。
+   * 另外，声明一个字符指针 t，用于存储最终拼接后的 SDS 对象。
+   * 这里先用栈区的staticbuf，如果fmt的2倍长度超过这个staticbuf在从堆去分配
+   * 这样做如果是小于1024的，直接用栈区的内存，非常快
+   * 这是预分配冗余空间的惯用手段，减小对内存的频繁分配
+   */
+  
+  if (buflen > sizeof(staticbuf)){
+    buf = s_malloc(buflen);
+    if (buf == NULL) return NULL;
+  } else {
+    buflen = sizeof(staticbuf);
+  }
+  /* Alloc enough space for buffer and \0 after failing to
+     * fit the string in the current buffer size. */
+  while(1) {
+    va_copy(cpy,ap);
+    bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+    va_end(cpy);
+    if (bufstrlen < 0) {
+      if (buf != staticbuf) s_free(buf);
+      return NULL;
+    }
+    if (((size_t)bufstrlen) >= buflen) {
+      if (buf != staticbuf) s_free(buf);
+      buflen = ((size_t)bufstrlen) + 1;
+      buf = s_malloc(buflen);
+      if (buf == NULL) return NULL;
+      continue;
+    }
+    break;
+  }
+
+  /* Finally concat the obtained string to the SDS string and return it. */
+  t = sdscatlen(s, buf, bufstrlen);
+  if (buf != staticbuf) s_free(buf);
+    // 这里底层调用的sdscatlen，是安全的
+    // 如果一次存完，调用栈内存，操作系统会帮忙回收，但是如果调用了堆内存，则需要手动释放
+  return  t;
+
+}
+```
+
+```C
+/* This function is similar to sdscatprintf, but much faster as it does
+ * not rely on sprintf() family functions implemented by the libc that
+ * are often very slow. Moreover directly handling the sds string as
+ * new data is concatenated provides a performance improvement.
+ *
+ * However this function only handles an incompatible subset of printf-alike
+ * format specifiers:
+ *
+ * %s - C String
+ * %S - SDS string
+ * %i - signed int
+ * %I - 64 bit signed integer (long long, int64_t)
+ * %u - unsigned int
+ * %U - 64 bit unsigned integer (unsigned long long, uint64_t)
+ * %% - Verbatim "%" character.
+ */
+sds sdscatfmt(sds s, char const *fmt, ...) {
+    size_t initlen = sdslen(s);
+    const char *f = fmt;
+    long i;
+    va_list ap;
+
+    /* To avoid continuous reallocations, let's start with a buffer that
+     * can hold at least two times the format string itself. It's not the
+     * best heuristic but seems to work in practice. */
+    s = sdsMakeRoomFor(s, initlen + strlen(fmt)*2);
+    va_start(ap,fmt);
+    f = fmt;    /* Next format specifier byte to process. */
+    i = initlen; /* Position of the next byte to write to dest str. */
+    while(*f) {
+        char next, *str;
+        size_t l;
+        long long num;
+        unsigned long long unum;
+
+        /* Make sure there is always space for at least 1 char. */
+        if (sdsavail(s)==0) {
+            s = sdsMakeRoomFor(s,1);
+        }
+
+        switch(*f) {
+        case '%':
+            next = *(f+1);
+            if (next == '\0') break;
+            f++;
+            switch(next) {
+            case 's':
+            case 'S':
+                str = va_arg(ap,char*);
+                l = (next == 's') ? strlen(str) : sdslen(str);
+                if (sdsavail(s) < l) {
+                    s = sdsMakeRoomFor(s,l);
+                }
+                memcpy(s+i,str,l);
+                sdsinclen(s,l);
+                i += l;
+                break;
+            case 'i':
+            case 'I':
+                if (next == 'i')
+                    num = va_arg(ap,int);
+                else
+                    num = va_arg(ap,long long);
+                {
+                    char buf[SDS_LLSTR_SIZE];
+                    l = sdsll2str(buf,num);
+                    if (sdsavail(s) < l) {
+                        s = sdsMakeRoomFor(s,l);
+                    }
+                    memcpy(s+i,buf,l);
+                    sdsinclen(s,l);
+                    i += l;
+                }
+                break;
+            case 'u':
+            case 'U':
+                if (next == 'u')
+                    unum = va_arg(ap,unsigned int);
+                else
+                    unum = va_arg(ap,unsigned long long);
+                {
+                    char buf[SDS_LLSTR_SIZE];
+                    l = sdsull2str(buf,unum);
+                    if (sdsavail(s) < l) {
+                        s = sdsMakeRoomFor(s,l);
+                    }
+                    memcpy(s+i,buf,l);
+                    sdsinclen(s,l);
+                    i += l;
+                }
+                break;
+            default: /* Handle %% and generally %<unknown>. */
+                s[i++] = next;
+                sdsinclen(s,1);
+                break;
+            }
+            break;
+        default:
+            s[i++] = *f;
+            sdsinclen(s,1);
+            break;
+        }
+        f++;
+    }
+    va_end(ap);
+
+    /* Add null-term */
+    s[i] = '\0';
+    return s;
+}
+```
+
+## 简单printf的实现
+
+```C
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+#define BUF_LEN 256
+char *hex_to_str(char *buf, long long int val, int width)
+{
+  int halfbyte, num;
+  long long int tmp_val = 0;
+  halfbyte = 2 * width;
+
+  buf[halfbyte] = 0;
+
+  for (int i = 0; i < halfbyte; ++i) {
+    tmp_val = (val >> (i * 4));
+    tmp_val = tmp_val & 0xf;
+    if (tmp_val < 10)
+      tmp_val = '0' + tmp_val;
+    else
+      tmp_val = 'a' + tmp_val;
+
+    num = halfbyte - i;
+    buf[num - 1] = tmp_val;
+
+  }
+  return buf;
+}
+
+void buf_add(char *buf, const char *str, int len)
+{
+  static int i = 0;
+  memcpy((buf + i), str, len);
+  i += len;
+}
+
+
+void myputs(char *s)
+{
+  while(*s != 0){
+    putchar(*s++);
+  }
+}
+
+void wz_print(const char *str, ...)
+{
+  va_list  va;
+  char buf[BUF_LEN] = {0};
+  char *addr = NULL;
+  char i_str[64] = {0};
+
+  va_start(va, str);
+
+  while(*str != 0){
+    if (*str == '%'){
+      str++;
+      switch (*str) {
+        case 's':
+          addr = va_arg(va, char *);
+          buf_add(buf, addr, strlen(addr));
+          str ++;
+          break;
+        case 'c':
+          addr = va_arg(va, char *);
+          buf_add(buf, addr, 1);
+          str++;
+          break;
+        case 'x':
+          addr = hex_to_str(i_str, va_arg(va, int), sizeof(int));
+          buf_add(buf, addr, strlen(addr));
+          break;
+        default:
+          buf_add(buf, str - 1, 1);
+          break;
+      }
+    } else {
+      buf_add(buf, str, 1);
+      str++;
+    }
+  }
+  va_end(va);
+  myputs(buf);
+}
+
+int main()
+{
+  char * hello = "LINUX";
+  char * world = "WANGZAI";
+  int x = 0x123;
+  wz_print("THIS IS %s, HELLO %s, %x\n", hello, world, x);
+}
+```
+
+## 将SDS对象左右两边指定的字符去除:`sdstrim`
+
+```c
+sds sdstrim(sds s, const char  *cset){
+  char * end, *sp,*ep;
+  /* 开始指针，结束指针*/
+
+  size_t  len;
+  sp = s;
+  ep = end = s + sdslen(s) - 1; // 计算出最后一个字符的地址
+
+  /* strchr() 
+  用于查找字符串中的一个字符，并返回该字符在字符串中第一次出现的位置。
+  */
+  while(sp <= end && strchr(cset, *sp))sp++;
+  while(ep > sp && strchr(cset, *ep))ep--;
+  len = (ep - sp) + 1;
+  /*
+   * void *memmove(void *str1, const void *str2, size_t n) 从 str2 复制 n 个字符到 str1，
+   * 但是在重叠内存块这方面，memmove() 是比 memcpy() 更安全的方法。
+   * 如果目标区域和源区域有重叠的话，memmove()
+   * 能够保证源串在被覆盖之前将重叠区域的字节拷贝到目标区域中，复制后源区域的内容会被更改。
+   * 如果目标区域与源区域没有重叠，则和 memcpy() 函数功能相同
+   */
+  if (s != sp) memmove(s, sp, len);
+  s[len] = '\0';
+  sdssetlen(s, len);
+  return s;
+}
+```
+
+## 从SDS中截取指定长度的字符串
+
+```C
+void sdsrange(sds s, ssize_t start, ssize_t end){
+  size_t  newlen, len = sdslen(s);
+
+  if (len == 0) return;
+  if (start < 0){
+    start = len + start;
+    if (start < 0) start = 0;
+  }
+  if (end < 0){
+    end = len + end;
+    if (end < 0)end = 0;
+  }
+  newlen = (start > end) ? 0 : (end - start) + 1;
+  if (newlen != 0){
+    if (start >= (ssize_t)len){
+      newlen = 0;
+    } else if (end >= (ssize_t)len){
+      end = len - 1;
+      newlen = (end - start) + 1;
+    }
+  }
+  if (start && newlen)memmove(s, s +start, newlen);
+  s[newlen] = 0;
+  sdssetlen(s , newlen);
+}
+```
 
 
 

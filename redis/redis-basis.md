@@ -23,7 +23,7 @@ make install
 
 #### redis配置文件初始化
 
-```
+```toml
 redis.conf配置文件，改完后确保生效，记得重启，记得重启
    1 默认daemonize no              改为  daemonize yes
    2 默认protected-mode  yes    改为  protected-mode no
