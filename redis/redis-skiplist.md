@@ -158,9 +158,6 @@ zskiplist *zslCreate(void) {
 ## 释放空间
 
 ```C
-
-}
-
 /* Free the specified skiplist node. The referenced SDS string representation
  * of the element is freed too, unless node->ele is set to NULL before calling
  * this function. */
