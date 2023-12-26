@@ -6723,3 +6723,112 @@ if [ $? == 0 ]; then
 fi
 ```
 
+## modifyMysqlPassword.exp
+
+```sh
+#!/usr/bin/expect
+
+puts "*****修改mysql数据库密码*****"
+
+set password [lindex $argv 0]
+
+spawn mysql -uroot -p$password
+expect "mysql>"
+send "ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';\r"
+expect "mysql>"
+send "use mysql;\r"
+expect "mysql>"
+send "update user set host = '%' where user ='root';\r"
+expect "mysql>"
+send "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';\r"
+expect "mysql>"
+send "flush privileges;\r"
+expect "mysql>"
+send "grant BACKUP_ADMIN on *.* to 'root'@'%';\r"
+expect "mysql>"
+send "flush privileges;\r"
+send "exit;\r"
+interact
+```
+
+## InstallMysql8AndXtrbackupInEuler.sh
+
+```sh
+#!/bin/bash
+mysql8Path=/home/i2auto/soft/mysql/mysql-8.0.35-1.el8.x86_64.rpm-bundle.tar
+xtrbackupPath=/home/i2auto/soft/mysql/percona-xtrabackup-8.0.35-30-Linux-x86_64.glibc2.17.tar.gz
+
+echo "****************************************************先安装必要软件********************************************************"
+yum -y install perl perl-devel libaio libaio-devel perl-Time-HiRes perl-DBD-MySQL
+yum -y install rsync perl  perl-Digest-MD5
+
+echo "****************************************************创建安装目录********************************************************"
+mkdir -p /root/mysql
+mkdir -p /root/xtrabackup
+
+echo "*******************************************拷贝安装包********************************************************"
+if [ -e $mysql8Path ];then
+    echo "**********************************从共享上拷贝mysql安装包**************************************************"
+    cp $mysql8Path /root/mysql
+    cp $xtrbackupPath /root/xtrabackup
+else
+    mount -t nfs 10.1.0.9:/share/autoPackage /home/i2auto
+    cp $mysql8Path /root/mysql
+    cp $xtrbackupPath /root/xtrabackup
+fi
+
+echo "******************************************删除无用的包***********************************************************"
+if rpm -qa | grep mariadb-connector-c-config > /dev/null; then
+  rm -rf /etc/my.cnf
+  rpm -qa | grep mariadb-connector-c-config | xargs -n 5 rpm -e --nodeps
+fi
+
+
+echo "***************************************安装mysql********************************************************"
+cd /root/mysql/
+tar -xf mysql-8.0.35-1.el8.x86_64.rpm-bundle.tar
+rpm -ivh mysql-community-common-8.0.35-1.el8.x86_64.rpm
+rpm -ivh mysql-community-client-plugins-8.0.35-1.el8.x86_64.rpm
+rpm -ivh mysql-community-libs-8.0.35-1.el8.x86_64.rpm
+rpm -ivh mysql-community-client-8.0.35-1.el8.x86_64.rpm
+rpm -ivh mysql-community-icu-data-files-8.0.35-1.el8.x86_64.rpm
+rpm -ivh mysql-community-server-8.0.35-1.el8.x86_64.rpm
+
+echo "***************************************初始化mysql****************************************************************"
+mysqld --initialize --user=mysql
+systemctl restart mysqld
+sleep 15s
+
+echo "****************************************修改密码和配置远程连接********************************************************"
+password=`cat /var/log/mysqld.log | grep 'temporary password' | awk -F"root@localhost: " '{print $NF}'`
+expect /root/auto/script/modifyMysqlPassword.exp $password
+
+echo "*****************************************配置Mysql数据库********************************************************"
+cp /etc/my.cnf  /root/my.cnf.$(date +%Y-%m-%d)
+# 添加配置
+cat <<EOF >> /etc/my.cnf
+[mysqld]
+server_id=101
+log-bin=/var/lib/mysql/mysql-bin.log
+binlog_format=MIXED
+
+[client]
+socket=/var/lib/mysql/mysql.sock
+EOF
+
+systemctl  restart mysqld
+
+echo "****************************************安装xtrbackup*******************************************"
+cd /root/xtrabackup/
+tar -zxvf percona-xtrabackup-8.0.35-30-Linux-x86_64.glibc2.17.tar.gz
+ln  -s /root/xtrabackup/percona-xtrabackup-8.0.35-30-Linux-x86_64.glibc2.17/bin/xtrabackup /usr/bin/xtrabackup
+ln  -s /root/xtrabackup/percona-xtrabackup-8.0.35-30-Linux-x86_64.glibc2.17/bin/xbstream /usr/bin/xbstream
+
+echo "****************************************测试xtrabackup是否可行*************************************************"
+mkdir -p /data/backups/
+xtrabackup --user=root --password=123456 --backup --target-dir=/data/backups/
+if [ $? == 0 ]; then
+  echo "**************************************安装成功***********************************************"
+fi
+```
+
