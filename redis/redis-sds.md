@@ -730,7 +730,7 @@ sds sdscatprintf(sds s, const char *fmt, ...);
 7. #endif: 结束条件编译块。
 ```
 
-## 获取各种sdshr的大小:sdsHdrSize`
+## 获取各种sdshr的大小:sdsHdrSize
 
 ```c
 static inline int sdsHdrSize(char type) {
